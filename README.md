@@ -2,13 +2,14 @@
 
 Web-SaaS для продавцов Wildberries и Ozon: пользователь загружает отчёт маркетплейса и получает расчёт прибыльности по SKU, список убыточных позиций и понятные рекомендации.
 
-Проект находится на этапе `Sprint 0: Foundation`. Текущий статус и ближайшие задачи описаны в [`PROJECT_STATE.md`](PROJECT_STATE.md), план этапов — в [`ROADMAP.md`](ROADMAP.md).
+Проект находится на этапе `Sprint 1: Первый полезный импорт`. Preview-адаптер уже локально разбирает синтетический XLSX финансового отчёта WB и показывает оценку по SKU без отправки файла на сервер. Текущий статус и ближайшие задачи описаны в [`PROJECT_STATE.md`](PROJECT_STATE.md), план этапов — в [`ROADMAP.md`](ROADMAP.md).
 
 ## Стек
 
 - Next.js 16, React 19 и TypeScript;
 - Tailwind CSS;
 - PostgreSQL и Prisma;
+- `read-excel-file` для безопасного чтения XLSX в браузере без выполнения макросов;
 - unit-, integration- и e2e-тесты для критичных сценариев по мере развития MVP.
 
 ## Локальный запуск
@@ -32,6 +33,8 @@ npm run dev
 
 Приложение откроется по адресу [http://localhost:3000](http://localhost:3000).
 
+На странице `/upload` первый preview-адаптер принимает XLSX с API-подобными полями финансового отчёта Wildberries. Он читает файл локально, переводит денежные значения в integer-копейки, объединяет продажи и возвраты по SKU и сверяет результат с `for_pay`. Это ещё не поддержка фактической выгрузки из кабинета: она будет объявлена только после проверки актуального анонимизированного образца.
+
 ## Проверки
 
 ```bash
@@ -53,7 +56,7 @@ CI запускает эти проверки, а также валидацию 
 3. Создайте ветку `codex/<краткое-имя>` и отдельный PR.
 4. Запустите релевантные проверки и обновите документацию.
 
-Финансовые правила описаны в [`docs/finance-formulas.md`](docs/finance-formulas.md), контракт импорта — в [`docs/report-formats.md`](docs/report-formats.md), подготовка релиза — в [`docs/release-checklist.md`](docs/release-checklist.md).
+Финансовые правила описаны в [`docs/finance-formulas.md`](docs/finance-formulas.md), контракт импорта — в [`docs/report-formats.md`](docs/report-formats.md), текущий план — в [`docs/sprint-1-plan.md`](docs/sprint-1-plan.md), подготовка релиза — в [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## Важные ограничения
 

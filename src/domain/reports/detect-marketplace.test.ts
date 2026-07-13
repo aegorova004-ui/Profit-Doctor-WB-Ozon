@@ -28,6 +28,12 @@ describe("detectReportMarketplace", () => {
     ).toBe("wildberries");
   });
 
+  it("recognizes the WB API financial report headers", () => {
+    expect(
+      detectReportMarketplace(["nm_id", "doc_type_name", "ppvz_for_pay"]),
+    ).toBe("wildberries");
+  });
+
   it("recognizes representative Ozon headers", () => {
     expect(
       detectReportMarketplace([

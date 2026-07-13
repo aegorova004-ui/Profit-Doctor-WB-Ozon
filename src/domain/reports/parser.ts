@@ -32,6 +32,8 @@ export type ParseWarning = {
 
 export type ParsedReport = {
   marketplace: ReportMarketplace;
+  formatVersion: string;
+  sourceRowCount: number;
   rows: NormalizedReportRow[];
   warnings: ParseWarning[];
   missingColumns: string[];
