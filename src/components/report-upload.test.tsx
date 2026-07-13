@@ -108,6 +108,15 @@ describe("ReportUpload", () => {
         "Себестоимость учтена для 3 из 3 SKU. Результат ниже обновлён.",
       ),
     ).toBeTruthy();
+    const costEditor = screen
+      .getByRole("heading", { name: "Добавьте себестоимость товаров" })
+      .closest("section");
+    expect(costEditor).not.toBeNull();
+    expect(
+      within(costEditor as HTMLElement).getByText(
+        "Себестоимость учтена для 3 из 3 SKU. Результат ниже обновлён.",
+      ),
+    ).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 

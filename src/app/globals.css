@@ -33,7 +33,6 @@ html {
 body {
   min-width: 320px;
   margin: 0;
-  overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
   font-family:
@@ -1870,7 +1869,7 @@ tbody tr:hover {
   position: absolute;
   top: -240px;
   left: 50%;
-  width: 680px;
+  width: min(680px, 100%);
   height: 680px;
   pointer-events: none;
   border-radius: 50%;
@@ -2005,12 +2004,24 @@ tbody tr:hover {
 }
 
 .upload-page {
+  display: block;
   padding-block: 126px 90px;
 }
 
 .upload-card {
   width: min(100%, 1180px);
+  margin-inline: auto;
   padding: 45px;
+}
+
+.upload-page > .back-link {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  width: max-content;
+  justify-content: center;
+  margin: 24px auto 0;
+  transform: none;
 }
 
 .upload-copy {
@@ -2380,19 +2391,19 @@ tbody tr:hover {
   line-height: 1.55;
 }
 
-.analysis-calculation-status {
-  margin: 18px 0 0;
+.cost-form-success {
+  margin: 12px 0 0;
   padding: 13px 15px;
-  color: #245e3b;
-  border: 1px solid #b9dca5;
+  color: #dfffc5;
+  border: 1px solid #507b3d;
   border-radius: 11px;
-  background: #eaf7df;
+  background: rgb(163 232 83 / 10%);
   font-size: 13px;
   line-height: 1.5;
 }
 
-.analysis-calculation-status strong {
-  color: #174f31;
+.cost-form-success strong {
+  color: #b8f36b;
 }
 
 .analysis-summary {

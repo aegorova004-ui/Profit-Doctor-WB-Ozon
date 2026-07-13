@@ -38,6 +38,7 @@ type CostEditorProps = {
   values: Readonly<Record<string, string>>;
   errors: Readonly<Record<string, string>>;
   formError: string;
+  calculationMessage: string;
   appliedCosts: Readonly<Record<string, number>>;
   onChange: (sku: string, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -48,6 +49,7 @@ function CostEditor({
   values,
   errors,
   formError,
+  calculationMessage,
   appliedCosts,
   onChange,
   onSubmit,
@@ -114,6 +116,11 @@ function CostEditor({
         {formError && (
           <p className="cost-form-error" role="alert">
             {formError}
+          </p>
+        )}
+        {calculationMessage && !formError && (
+          <p className="cost-form-success" role="status">
+            <strong>Готово.</strong> {calculationMessage}
           </p>
         )}
       </form>
@@ -246,13 +253,7 @@ function MobileAnalysisCards({ analysis }: { analysis: ReportAnalysis }) {
   );
 }
 
-function AnalysisResult({
-  analysis,
-  calculationMessage,
-}: {
-  analysis: ReportAnalysis;
-  calculationMessage: string;
-}) {
+function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
   return (
     <section className="analysis-result" aria-labelledby="analysis-title">
       <div className="analysis-heading">
@@ -262,12 +263,6 @@ function AnalysisResult({
         </div>
         <span className="analysis-badge">Локально</span>
       </div>
-
-      {calculationMessage && (
-        <p className="analysis-calculation-status" role="status">
-          <strong>Готово.</strong> {calculationMessage}
-        </p>
-      )}
 
       <p className="analysis-notice">
         Результат учитывает удержания WB и введённую себестоимость. Рекламы в
@@ -472,6 +467,7 @@ export function ReportUpload() {
   function handleCostChange(sku: string, value: string) {
     setCostValues((current) => ({ ...current, [sku]: value }));
     setCostFormError("");
+    setCalculationMessage("");
     setCostErrors((current) => {
       if (!current[sku]) {
         return current;
@@ -627,6 +623,7 @@ export function ReportUpload() {
           values={costValues}
           errors={costErrors}
           formError={costFormError}
+          calculationMessage={calculationMessage}
           appliedCosts={appliedUnitCosts}
           onChange={handleCostChange}
           onSubmit={handleCostSubmit}
@@ -634,10 +631,7 @@ export function ReportUpload() {
       )}
       {analysis && (
         <div>
-          <AnalysisResult
-            analysis={analysis}
-            calculationMessage={calculationMessage}
-          />
+          <AnalysisResult analysis={analysis} />
         </div>
       )}
     </div>
