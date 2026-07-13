@@ -102,7 +102,30 @@ describe("ReportUpload", () => {
     });
     expect(within(desktopTable).getAllByText("Убыток")).toHaveLength(2);
     expect(within(desktopTable).getAllByText("Пока в плюсе")).toHaveLength(1);
-    expect(screen.getAllByRole("article")).toHaveLength(3);
+    const diagnosis = within(screen.getByTestId("profit-diagnosis"));
+    expect(
+      diagnosis.getByRole("heading", {
+        name: "С чего начать восстановление прибыли",
+      }),
+    ).toBeTruthy();
+    expect(
+      diagnosis.getByText("Убыток проблемных SKU").nextElementSibling
+        ?.textContent,
+    ).toBe("269 ₽");
+    expect(
+      diagnosis.getByText("Запас SKU в плюсе").nextElementSibling?.textContent,
+    ).toBe("346,50 ₽");
+    expect(
+      diagnosis.getByText("Первый приоритет").nextElementSibling?.textContent,
+    ).toBe("Набор контейнеров");
+    expect(
+      diagnosis.getByText(
+        (_, element) =>
+          element?.textContent ===
+          "Порог себестоимости до рекламы — 1 128,50 ₽ за период, или 1 128,50 ₽ за единицу.",
+      ),
+    ).toBeTruthy();
+    expect(diagnosis.getAllByRole("article")).toHaveLength(3);
     expect(
       screen.getByText(
         "Себестоимость учтена для 3 из 3 SKU. Результат ниже обновлён.",

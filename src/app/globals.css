@@ -2504,6 +2504,216 @@ tbody tr:hover {
   padding-left: 18px;
 }
 
+.profit-diagnosis {
+  margin-top: 24px;
+  padding: clamp(20px, 3vw, 30px);
+  color: #eaf7ee;
+  border: 1px solid #214936;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 92% 8%, rgb(184 243 107 / 12%), transparent 28%),
+    #0b281c;
+}
+
+.profit-diagnosis-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.profit-diagnosis-heading .eyebrow {
+  margin: 0 0 8px;
+  color: #b8f36b;
+}
+
+.profit-diagnosis-heading h3 {
+  max-width: 720px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(24px, 3.2vw, 38px);
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+}
+
+.profit-diagnosis-heading > span {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  color: #dfffc5;
+  border: 1px solid #507b3d;
+  border-radius: 999px;
+  background: rgb(184 243 107 / 8%);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profit-diagnosis-lead {
+  max-width: 830px;
+  margin: 14px 0 0;
+  color: #b9cbc0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.profit-diagnosis-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 22px 0 0;
+}
+
+.profit-diagnosis-summary > div {
+  min-width: 0;
+  padding: 15px 16px;
+  border: 1px solid #2a4f3c;
+  border-radius: 13px;
+  background: rgb(255 255 255 / 4%);
+}
+
+.profit-diagnosis-summary dt {
+  color: #96ad9f;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.profit-diagnosis-summary dd {
+  margin: 7px 0 0;
+  color: #fff;
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.profit-diagnosis-summary > div:first-child dd {
+  color: #ff9d8a;
+}
+
+.profit-diagnosis-summary > div:nth-child(2) dd {
+  color: #c9ff83;
+}
+
+.profit-diagnosis-summary > div:last-child dd {
+  font-size: clamp(15px, 1.8vw, 19px);
+}
+
+.profit-diagnosis-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.profit-diagnosis-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #2a4f3c;
+  border-radius: 15px;
+  background: #123323;
+}
+
+.profit-diagnosis-loss {
+  border-color: #745044;
+  background:
+    linear-gradient(145deg, rgb(255 144 115 / 8%), transparent 52%), #123323;
+}
+
+.profit-diagnosis-positive,
+.profit-diagnosis-positive-estimate {
+  background:
+    linear-gradient(145deg, rgb(184 243 107 / 7%), transparent 52%), #123323;
+}
+
+.profit-diagnosis-missing-cost {
+  border-style: dashed;
+}
+
+.profit-diagnosis-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.profit-diagnosis-card-heading span {
+  display: block;
+  margin-bottom: 7px;
+  color: #b8f36b;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.profit-diagnosis-loss .profit-diagnosis-card-heading span {
+  color: #ffb09f;
+}
+
+.profit-diagnosis-card-heading h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.profit-diagnosis-card-heading small {
+  display: block;
+  margin-top: 5px;
+  color: #90a59a;
+  font-size: 10px;
+}
+
+.profit-diagnosis-card-heading > strong {
+  flex: 0 0 auto;
+  color: #c9ff83;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.profit-diagnosis-loss .profit-diagnosis-card-heading > strong {
+  color: #ff9d8a;
+}
+
+.profit-diagnosis-card > p {
+  margin: 15px 0 0;
+  color: #c4d2ca;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.profit-diagnosis-card .profit-diagnosis-action {
+  padding: 11px 12px;
+  color: #f4f8f5;
+  border-left: 3px solid #b8f36b;
+  border-radius: 0 9px 9px 0;
+  background: rgb(184 243 107 / 8%);
+}
+
+.profit-diagnosis-driver {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  padding-top: 13px;
+  border-top: 1px solid #2b4b3b;
+}
+
+.profit-diagnosis-driver span {
+  color: #e4eee8;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.profit-diagnosis-driver small {
+  color: #95aa9e;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 .analysis-table-wrap {
   margin-top: 18px;
   overflow-x: auto;
@@ -2805,6 +3015,10 @@ tbody tr:hover {
 }
 
 @media (max-width: 1130px) {
+  .profit-diagnosis-list {
+    grid-template-columns: 1fr;
+  }
+
   .analysis-table-desktop {
     display: none;
   }
@@ -3246,6 +3460,28 @@ tbody tr:hover {
 
   .analysis-summary dd {
     font-size: 23px;
+  }
+
+  .profit-diagnosis {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .profit-diagnosis-heading {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .profit-diagnosis-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .profit-diagnosis-card-heading {
+    gap: 10px;
+  }
+
+  .profit-diagnosis-card-heading > strong {
+    font-size: 18px;
   }
 
   .analysis-mobile-values {
