@@ -10,32 +10,34 @@ type ProfitDoctorMascotProps = {
 export function ProfitDoctorMascot({
   className = "",
 }: ProfitDoctorMascotProps) {
-  const [isWaving, setIsWaving] = useState(false);
-  const waveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isRaised, setIsRaised] = useState(false);
+  const raiseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
-      if (waveTimer.current) {
-        clearTimeout(waveTimer.current);
+      if (raiseTimer.current) {
+        clearTimeout(raiseTimer.current);
       }
     };
   }, []);
 
-  function wave() {
-    if (waveTimer.current) {
-      clearTimeout(waveTimer.current);
+  function raiseOnce() {
+    if (raiseTimer.current) {
+      clearTimeout(raiseTimer.current);
     }
 
-    setIsWaving(true);
-    waveTimer.current = setTimeout(() => setIsWaving(false), 3050);
+    setIsRaised(true);
+    raiseTimer.current = setTimeout(() => setIsRaised(false), 700);
   }
 
   return (
     <button
       type="button"
-      className={`${className} doctor-mascot-button${isWaving ? "is-waving" : ""}`}
-      onClick={wave}
-      aria-label="Profit Doctor машет рукой"
+      className={[className, "doctor-mascot-button", isRaised && "is-raised"]
+        .filter(Boolean)
+        .join(" ")}
+      onClick={raiseOnce}
+      aria-label="Profit Doctor поднимает руку"
     >
       <Image
         className="doctor-mascot-frame doctor-mascot-frame-rest"

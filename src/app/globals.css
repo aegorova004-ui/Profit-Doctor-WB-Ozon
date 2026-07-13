@@ -1081,32 +1081,29 @@ a {
   opacity: 0;
 }
 
-.doctor-mascot-button.is-waving .doctor-mascot-frame-wave {
-  animation: doctor-wave-frames 1s steps(1, end) 3;
+.doctor-mascot-button.is-raised .doctor-mascot-frame-rest {
+  opacity: 0;
 }
 
-@keyframes doctor-wave-frames {
-  0%,
-  18%,
-  48%,
-  78%,
-  100% {
-    opacity: 0;
-  }
-
-  19%,
-  47%,
-  49%,
-  77%,
-  79%,
-  96% {
-    opacity: 1;
-  }
+.doctor-mascot-button.is-raised .doctor-mascot-frame-wave {
+  opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .doctor-mascot-button:not(:hover) .doctor-mascot-frame-rest {
+    opacity: 1;
+  }
+
+  .doctor-mascot-button:not(:hover) .doctor-mascot-frame-wave {
+    opacity: 0;
+  }
+
+  .doctor-mascot-button:hover .doctor-mascot-frame-rest {
+    opacity: 0;
+  }
+
   .doctor-mascot-button:hover .doctor-mascot-frame-wave {
-    animation: doctor-wave-frames 1s steps(1, end) infinite;
+    opacity: 1;
   }
 }
 
@@ -2646,11 +2643,5 @@ tbody tr:hover {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
-  }
-
-  .doctor-mascot-button.is-waving .doctor-mascot-frame-wave,
-  .doctor-mascot-button:hover .doctor-mascot-frame-wave {
-    animation: none;
-    opacity: 1;
   }
 }
