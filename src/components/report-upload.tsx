@@ -6,6 +6,11 @@ import {
   type ReportAnalysis,
 } from "@/domain/reports/analyze-report";
 import { parseRublesToKopecks } from "@/domain/reports/decimal";
+import {
+  diagnoseReport,
+  type ExpenseDriver,
+  type SkuDiagnosis,
+} from "@/domain/reports/diagnose-report";
 import type { ParsedReport } from "@/domain/reports/parser";
 import {
   parseWildberriesApiPreviewWorkbook,
@@ -256,6 +261,200 @@ function MobileAnalysisCards({ analysis }: { analysis: ReportAnalysis }) {
   );
 }
 
+const EXPENSE_DRIVER_LABELS: Record<ExpenseDriver, string> = {
+  "cost-of-goods": "себестоимость",
+  commission: "комиссия WB",
+  logistics: "логистика",
+  storage: "хранение",
+  returns: "возвраты",
+  penalties: "штрафы",
+  advertising: "реклама",
+  other: "прочие удержания",
+};
+
+const EXPENSE_DRIVER_ACTIONS: Record<ExpenseDriver, string> = {
+  "cost-of-goods":
+    "Сначала проверьте закупочную цену, комплектацию и фактическую себестоимость.",
+  commission:
+    "Сначала проверьте категорию товара и ставку комиссии в кабинете WB.",
+  logistics:
+    "Сначала проверьте габариты, упаковку и схему поставки — они влияют на логистику.",
+  storage:
+    "Сначала проверьте оборачиваемость и остатки, которые увеличивают хранение.",
+  returns:
+    "Сначала проверьте причины возвратов, карточку товара и качество комплектации.",
+  penalties: "Сначала разберите штрафы и устраните повторяющиеся причины.",
+  advertising:
+    "Сначала проверьте кампании и отключите расходы без подтверждённых продаж.",
+  other:
+    "Сначала раскройте прочие удержания в отчёте и проверьте их назначение.",
+};
+
+function diagnosisText(diagnosis: SkuDiagnosis): string {
+  if (diagnosis.status === "missing-cost") {
+    return "Добавьте себестоимость — без неё нельзя определить запас до безубыточности.";
+  }
+
+  if (diagnosis.status === "loss") {
+    return diagnosis.lossBeforeCostOfGoods
+      ? "Удержания маркетплейса уже выше выручки. Даже нулевая себестоимость не выводит товар в плюс."
+      : `Порог себестоимости до рекламы — ${formatKopecks(
+          diagnosis.maxAffordableCostOfGoodsKopecks,
+        )} за период${
+          diagnosis.maxAffordableUnitCostKopecks === null
+            ? ""
+            : `, или ${formatKopecks(
+                diagnosis.maxAffordableUnitCostKopecks,
+              )} за единицу`
+        }.`;
+  }
+
+  return diagnosis.status === "positive-estimate"
+    ? `Запас по известным расходам — ${formatKopecks(
+        diagnosis.positiveBufferKopecks,
+      )}. Если реклама и другие пропущенные расходы выше этой суммы, SKU станет убыточным.`
+    : `Запас до нулевого результата — ${formatKopecks(
+        diagnosis.positiveBufferKopecks,
+      )}.`;
+}
+
+function DiagnosisPanel({ analysis }: { analysis: ReportAnalysis }) {
+  const diagnosis = diagnoseReport(analysis);
+
+  if (
+    analysis.missingCostSkuCount === analysis.skuCount &&
+    diagnosis.lossSkuCount === 0
+  ) {
+    return null;
+  }
+
+  const rowsBySku = new Map(analysis.rows.map((row) => [row.sku, row]));
+  const orderedRows = [...diagnosis.rows].sort((left, right) => {
+    const leftPriority = diagnosis.prioritySkus.indexOf(left.sku);
+    const rightPriority = diagnosis.prioritySkus.indexOf(right.sku);
+
+    if (leftPriority >= 0 || rightPriority >= 0) {
+      if (leftPriority < 0) return 1;
+      if (rightPriority < 0) return -1;
+      return leftPriority - rightPriority;
+    }
+
+    return right.positiveBufferKopecks - left.positiveBufferKopecks;
+  });
+  const primaryRow = diagnosis.primaryLossSku
+    ? rowsBySku.get(diagnosis.primaryLossSku)
+    : null;
+
+  return (
+    <section
+      className="profit-diagnosis"
+      aria-labelledby="profit-diagnosis-title"
+      data-testid="profit-diagnosis"
+    >
+      <div className="profit-diagnosis-heading">
+        <div>
+          <p className="eyebrow">Диагноз Profit Doctor</p>
+          <h3 id="profit-diagnosis-title">
+            {diagnosis.lossSkuCount > 0
+              ? "С чего начать восстановление прибыли"
+              : "Что контролировать дальше"}
+          </h3>
+        </div>
+        <span>До рекламы</span>
+      </div>
+
+      <p className="profit-diagnosis-lead">
+        {diagnosis.lossSkuCount > 0
+          ? `Проблемные SKU дают ${formatKopecks(
+              diagnosis.totalLossKopecks,
+            )} убытка за период. Таких товаров — ${diagnosis.lossSkuCount}. Это сумма их убытков, а не итог после взаимозачёта с прибыльными.`
+          : "По известным расходам убыточных SKU нет. Положительный результат ещё нужно сверить с рекламой и другими расходами вне отчёта."}
+      </p>
+
+      <dl className="profit-diagnosis-summary">
+        <div>
+          <dt>Убыток проблемных SKU</dt>
+          <dd>{formatKopecks(diagnosis.totalLossKopecks)}</dd>
+        </div>
+        <div>
+          <dt>Запас SKU в плюсе</dt>
+          <dd>{formatKopecks(diagnosis.totalPositiveBufferKopecks)}</dd>
+        </div>
+        <div>
+          <dt>Первый приоритет</dt>
+          <dd>
+            {primaryRow?.productName ?? primaryRow?.sku ?? "Сверить рекламу"}
+          </dd>
+        </div>
+      </dl>
+
+      <div className="profit-diagnosis-list">
+        {orderedRows.map((rowDiagnosis) => {
+          const row = rowsBySku.get(rowDiagnosis.sku);
+          const priorityIndex = diagnosis.prioritySkus.indexOf(
+            rowDiagnosis.sku,
+          );
+          const driver = rowDiagnosis.largestKnownExpense;
+
+          return (
+            <article
+              className={`profit-diagnosis-card profit-diagnosis-${rowDiagnosis.status}`}
+              key={rowDiagnosis.sku}
+            >
+              <div className="profit-diagnosis-card-heading">
+                <div>
+                  <span>
+                    {priorityIndex >= 0
+                      ? `Приоритет ${priorityIndex + 1}`
+                      : rowDiagnosis.status === "missing-cost"
+                        ? "Нужны данные"
+                        : "Контроль"}
+                  </span>
+                  <h4>{row?.productName ?? rowDiagnosis.sku}</h4>
+                  <small>{rowDiagnosis.sku}</small>
+                </div>
+                <strong>
+                  {rowDiagnosis.status === "loss"
+                    ? `−${formatKopecks(rowDiagnosis.breakEvenGapKopecks)}`
+                    : rowDiagnosis.status === "missing-cost"
+                      ? "—"
+                      : formatKopecks(rowDiagnosis.positiveBufferKopecks)}
+                </strong>
+              </div>
+
+              <p>{diagnosisText(rowDiagnosis)}</p>
+
+              {rowDiagnosis.status === "loss" && (
+                <p className="profit-diagnosis-action">
+                  Улучшите результат минимум на{" "}
+                  <strong>
+                    {formatKopecks(rowDiagnosis.breakEvenGapKopecks)}
+                  </strong>{" "}
+                  за период — за счёт выручки после удержаний и/или снижения
+                  расходов.
+                </p>
+              )}
+
+              {driver && (
+                <div className="profit-diagnosis-driver">
+                  <span>
+                    Крупнейшая известная статья —{" "}
+                    <strong>{EXPENSE_DRIVER_LABELS[driver.driver]}</strong>:{" "}
+                    {formatKopecks(driver.amountKopecks)}
+                  </span>
+                  {rowDiagnosis.status === "loss" && (
+                    <small>{EXPENSE_DRIVER_ACTIONS[driver.driver]}</small>
+                  )}
+                </div>
+              )}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
   return (
     <section className="analysis-result" aria-labelledby="analysis-title">
@@ -318,6 +517,8 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
           </ul>
         </div>
       )}
+
+      <DiagnosisPanel analysis={analysis} />
 
       <div className="analysis-table-wrap analysis-table-desktop">
         <table className="analysis-table">
