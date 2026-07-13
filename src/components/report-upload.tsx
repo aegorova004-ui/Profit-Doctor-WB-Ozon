@@ -176,6 +176,76 @@ function SourceBreakdown({ row }: { row: ReportAnalysis["rows"][number] }) {
   );
 }
 
+function AnalysisStatus({ row }: { row: ReportAnalysis["rows"][number] }) {
+  const status = row.profit.isLoss
+    ? {
+        className: "analysis-status-loss",
+        label: "Убыток",
+      }
+    : row.costOfGoodsSource === "missing"
+      ? {
+          className: "analysis-status-missing",
+          label: "Нужна себестоимость",
+        }
+      : {
+          className: "analysis-status-positive",
+          label: "Пока в плюсе",
+        };
+
+  return (
+    <span className={`analysis-status ${status.className}`}>
+      {status.label}
+    </span>
+  );
+}
+
+function MobileAnalysisCards({ analysis }: { analysis: ReportAnalysis }) {
+  return (
+    <div className="analysis-mobile-list">
+      {analysis.rows.map((row) => (
+        <article className="analysis-mobile-card" key={row.sku}>
+          <div className="analysis-mobile-heading">
+            <div>
+              <h3>{row.productName ?? row.sku}</h3>
+              <p>{row.sku}</p>
+            </div>
+            <AnalysisStatus row={row} />
+          </div>
+          <dl className="analysis-mobile-values">
+            <div>
+              <dt>Количество</dt>
+              <dd>{row.quantity} шт.</dd>
+            </div>
+            <div>
+              <dt>Выручка</dt>
+              <dd>{formatKopecks(row.profit.revenueKopecks)}</dd>
+            </div>
+            <div>
+              <dt>Удержания WB</dt>
+              <dd>{formatKopecks(row.profit.marketplaceExpensesKopecks)}</dd>
+            </div>
+            <div>
+              <dt>Себестоимость</dt>
+              <dd>
+                {row.profit.costOfGoodsKopecks === null
+                  ? "Не указана"
+                  : formatKopecks(row.profit.costOfGoodsKopecks)}
+              </dd>
+            </div>
+            <div className="analysis-mobile-result">
+              <dt>Результат до рекламы</dt>
+              <dd className={row.profit.isLoss ? "analysis-loss" : undefined}>
+                {formatKopecks(row.profit.operatingProfitKopecks)}
+              </dd>
+            </div>
+          </dl>
+          <SourceBreakdown row={row} />
+        </article>
+      ))}
+    </div>
+  );
+}
+
 function AnalysisResult({
   analysis,
   calculationMessage,
@@ -204,7 +274,7 @@ function AnalysisResult({
         этом отчёте нет, поэтому положительная сумма — ещё не чистая прибыль.
       </p>
 
-      <dl className="analysis-summary">
+      <dl className="analysis-summary" data-testid="analysis-summary">
         <div>
           <dt>Выручка</dt>
           <dd>{formatKopecks(analysis.totalRevenueKopecks)}</dd>
@@ -251,7 +321,7 @@ function AnalysisResult({
         </div>
       )}
 
-      <div className="analysis-table-wrap">
+      <div className="analysis-table-wrap analysis-table-desktop">
         <table className="analysis-table">
           <caption className="visually-hidden">
             Оценка результата по товарам Wildberries
@@ -288,34 +358,20 @@ function AnalysisResult({
                   >
                     {formatKopecks(row.profit.operatingProfitKopecks)}
                   </strong>
-                  <span
-                    className={`analysis-status ${
-                      row.profit.isLoss
-                        ? "analysis-status-loss"
-                        : row.costOfGoodsSource === "missing"
-                          ? "analysis-status-missing"
-                          : "analysis-status-positive"
-                    }`}
-                  >
-                    {row.profit.isLoss
-                      ? "Убыток"
-                      : row.costOfGoodsSource === "missing"
-                        ? "Нужна себестоимость"
-                        : "Пока в плюсе"}
-                  </span>
+                  <AnalysisStatus row={row} />
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <MobileAnalysisCards analysis={analysis} />
     </section>
   );
 }
 
 export function ReportUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const analysisRef = useRef<HTMLDivElement>(null);
   const analysisRunRef = useRef(0);
   const [file, setFile] = useState<File | null>(null);
   const [format, setFormat] = useState<"CSV" | "XLSX" | null>(null);
@@ -476,12 +532,6 @@ export function ReportUpload() {
     setCalculationMessage(
       `Себестоимость учтена для ${completedCount} из ${report.rows.filter((row) => row.quantity > 0).length} SKU. Результат ниже обновлён.`,
     );
-    window.requestAnimationFrame(() => {
-      analysisRef.current?.scrollIntoView?.({
-        behavior: "smooth",
-        block: "start",
-      });
-    });
   }
 
   const dropzoneClassName = [
@@ -583,7 +633,7 @@ export function ReportUpload() {
         />
       )}
       {analysis && (
-        <div ref={analysisRef}>
+        <div>
           <AnalysisResult
             analysis={analysis}
             calculationMessage={calculationMessage}

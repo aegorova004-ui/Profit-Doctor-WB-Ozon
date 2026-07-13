@@ -3,7 +3,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReportUpload } from "./report-upload";
@@ -45,20 +45,18 @@ describe("ReportUpload", () => {
         name: "Отчёт WB прочитан и сверен",
       }),
     ).toBeTruthy();
+    const summary = within(screen.getByTestId("analysis-summary"));
+    expect(summary.getByText("Выручка").nextElementSibling?.textContent).toBe(
+      "6 840 ₽",
+    );
     expect(
-      screen.getAllByText("Выручка", { selector: "dt" })[0].nextElementSibling
-        ?.textContent,
-    ).toBe("6 840 ₽");
-    expect(
-      screen.getByText("Удержания WB", { selector: "dt" }).nextElementSibling
-        ?.textContent,
+      summary.getByText("Удержания WB").nextElementSibling?.textContent,
     ).toBe("3 062,50 ₽");
     expect(
-      screen.getAllByText("Себестоимость", { selector: "dt" })[0]
-        .nextElementSibling?.textContent,
+      summary.getByText("Себестоимость").nextElementSibling?.textContent,
     ).toBe("0 ₽");
     expect(
-      screen.getByText("Результат до рекламы").nextElementSibling?.textContent,
+      summary.getByText("Результат до рекламы").nextElementSibling?.textContent,
     ).toBe("3 777,50 ₽");
     expect(screen.getByText("4 операций")).toBeTruthy();
     expect(screen.getByText("3 SKU")).toBeTruthy();
@@ -93,15 +91,18 @@ describe("ReportUpload", () => {
     );
 
     expect(
-      screen.getAllByText("Себестоимость", { selector: "dt" })[0]
-        .nextElementSibling?.textContent,
+      summary.getByText("Себестоимость").nextElementSibling?.textContent,
     ).toBe("3 700 ₽");
     expect(
-      screen.getByText("Результат до рекламы").nextElementSibling?.textContent,
+      summary.getByText("Результат до рекламы").nextElementSibling?.textContent,
     ).toBe("77,50 ₽");
     expect(screen.getByText("2 убыточных SKU")).toBeTruthy();
-    expect(screen.getAllByText("Убыток")).toHaveLength(2);
-    expect(screen.getAllByText("Пока в плюсе")).toHaveLength(1);
+    const desktopTable = screen.getByRole("table", {
+      name: "Оценка результата по товарам Wildberries",
+    });
+    expect(within(desktopTable).getAllByText("Убыток")).toHaveLength(2);
+    expect(within(desktopTable).getAllByText("Пока в плюсе")).toHaveLength(1);
+    expect(screen.getAllByRole("article")).toHaveLength(3);
     expect(
       screen.getByText(
         "Себестоимость учтена для 3 из 3 SKU. Результат ниже обновлён.",
@@ -133,6 +134,7 @@ describe("ReportUpload", () => {
     await screen.findByRole("heading", {
       name: "Отчёт WB прочитан и сверен",
     });
+    const summary = within(screen.getByTestId("analysis-summary"));
 
     await user.type(
       screen.getByLabelText(
@@ -153,7 +155,7 @@ describe("ReportUpload", () => {
       screen.getByText("Исправьте отмеченные суммы и повторите пересчёт."),
     ).toBeTruthy();
     expect(
-      screen.getByText("Результат до рекламы").nextElementSibling?.textContent,
+      summary.getByText("Результат до рекламы").nextElementSibling?.textContent,
     ).toBe("3 777,50 ₽");
   });
 });

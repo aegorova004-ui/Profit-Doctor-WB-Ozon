@@ -33,6 +33,7 @@ html {
 body {
   min-width: 320px;
   margin: 0;
+  overflow-x: clip;
   background: var(--paper);
   color: var(--ink);
   font-family:
@@ -1849,7 +1850,7 @@ tbody tr:hover {
   display: grid;
   place-items: center;
   padding: 126px 24px 72px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--night);
 }
 
@@ -2008,7 +2009,7 @@ tbody tr:hover {
 }
 
 .upload-card {
-  width: min(100%, 900px);
+  width: min(100%, 1180px);
   padding: 45px;
 }
 
@@ -2471,6 +2472,100 @@ tbody tr:hover {
   border-radius: 13px;
 }
 
+.analysis-mobile-list {
+  display: none;
+}
+
+.analysis-mobile-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #dce3da;
+  border-radius: 15px;
+  background: #fbfcfa;
+}
+
+.analysis-mobile-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.analysis-mobile-heading h3,
+.analysis-mobile-heading p {
+  margin: 0;
+}
+
+.analysis-mobile-heading h3 {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.analysis-mobile-heading p {
+  margin-top: 5px;
+  color: #76827c;
+  font-size: 10px;
+}
+
+.analysis-mobile-heading .analysis-status {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.analysis-mobile-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.analysis-mobile-values > div {
+  min-width: 0;
+  padding: 11px;
+  border-radius: 10px;
+  background: #f0f4ed;
+}
+
+.analysis-mobile-values dt {
+  color: #6b7871;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.analysis-mobile-values dd {
+  margin: 5px 0 0;
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+.analysis-mobile-values .analysis-mobile-result {
+  grid-column: 1 / -1;
+  color: #174d33;
+  background: #e8f5df;
+}
+
+.analysis-mobile-result dd {
+  font-size: 19px;
+}
+
+.analysis-mobile-card > .source-breakdown {
+  margin-top: 14px;
+}
+
+.analysis-mobile-card .source-breakdown summary {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.analysis-mobile-card .source-breakdown dl {
+  width: 100%;
+  min-width: 0;
+}
+
 .analysis-table {
   width: 100%;
   min-width: 980px;
@@ -2668,6 +2763,18 @@ tbody tr:hover {
   color: #78847e;
   font-size: 9px;
   line-height: 1.45;
+}
+
+@media (max-width: 1130px) {
+  .analysis-table-desktop {
+    display: none;
+  }
+
+  .analysis-mobile-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+  }
 }
 
 @media (max-width: 1080px) {
@@ -3088,6 +3195,14 @@ tbody tr:hover {
 
   .analysis-summary dd {
     font-size: 23px;
+  }
+
+  .analysis-mobile-values {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-mobile-values .analysis-mobile-result {
+    grid-column: auto;
   }
 }
 
