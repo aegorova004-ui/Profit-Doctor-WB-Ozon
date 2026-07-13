@@ -1,10 +1,12 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 import {
   analyzeParsedReport,
   type ReportAnalysis,
 } from "@/domain/reports/analyze-report";
+import { parseRublesToKopecks } from "@/domain/reports/decimal";
+import type { ParsedReport } from "@/domain/reports/parser";
 import {
   parseWildberriesApiPreviewWorkbook,
   ReportParseError,
@@ -31,6 +33,142 @@ function formatKopecks(value: number): string {
   return `${negative ? "−" : ""}${rubles}${kopecks === "00" ? "" : `,${kopecks}`} ₽`;
 }
 
+type CostEditorProps = {
+  report: ParsedReport;
+  values: Readonly<Record<string, string>>;
+  errors: Readonly<Record<string, string>>;
+  appliedCosts: Readonly<Record<string, number>>;
+  onChange: (sku: string, value: string) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+};
+
+function CostEditor({
+  report,
+  values,
+  errors,
+  appliedCosts,
+  onChange,
+  onSubmit,
+}: CostEditorProps) {
+  const rows = report.rows.filter((row) => row.quantity > 0);
+  const appliedCount = rows.filter((row) =>
+    Object.prototype.hasOwnProperty.call(appliedCosts, row.sku),
+  ).length;
+
+  return (
+    <section className="cost-editor" aria-labelledby="cost-editor-title">
+      <div className="cost-editor-heading">
+        <div>
+          <p className="eyebrow eyebrow-dark">Следующий шаг</p>
+          <h2 id="cost-editor-title">Добавьте себестоимость товаров</h2>
+        </div>
+        <span>
+          {appliedCount} из {rows.length} SKU
+        </span>
+      </div>
+      <p>
+        Укажите закупочную себестоимость одной единицы. Мы умножим её на
+        количество из отчёта и пересчитаем результат до рекламы.
+      </p>
+      <form onSubmit={onSubmit} noValidate>
+        <div className="cost-grid">
+          {rows.map((row, index) => {
+            const errorId = `cost-error-${index}`;
+            const label = `Себестоимость одной единицы для ${row.productName ?? row.sku}, ₽`;
+
+            return (
+              <label className="cost-field" key={row.sku}>
+                <span className="cost-product">
+                  <strong>{row.productName ?? row.sku}</strong>
+                  <small>
+                    {row.sku} · {row.quantity} шт.
+                  </small>
+                </span>
+                <span className="cost-label">Себестоимость единицы, ₽</span>
+                <input
+                  aria-label={label}
+                  aria-describedby={errors[row.sku] ? errorId : undefined}
+                  aria-invalid={Boolean(errors[row.sku])}
+                  autoComplete="off"
+                  inputMode="decimal"
+                  maxLength={14}
+                  placeholder="Например, 850,50"
+                  type="text"
+                  value={values[row.sku] ?? ""}
+                  onChange={(event) => onChange(row.sku, event.target.value)}
+                />
+                {errors[row.sku] && (
+                  <small className="cost-error" id={errorId}>
+                    {errors[row.sku]}
+                  </small>
+                )}
+              </label>
+            );
+          })}
+        </div>
+        <button className="button button-primary cost-submit" type="submit">
+          Пересчитать прибыль
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function SourceBreakdown({ row }: { row: ReportAnalysis["rows"][number] }) {
+  const sourceRows = [
+    ["Выручка", row.profit.revenueKopecks, "retail_amount"],
+    [
+      "Комиссия WB",
+      row.marketplaceCommissionKopecks,
+      "retail_amount − ppvz_for_pay",
+    ],
+    ["Логистика", row.logisticsKopecks, "delivery_rub"],
+    ["Хранение", row.storageKopecks, "storage_fee"],
+    ["Возвраты", row.returnsKopecks, "retail_amount возврата"],
+    ["Штрафы", row.penaltiesKopecks, "penalty"],
+    ["Другие удержания", row.otherExpensesKopecks, "deduction"],
+  ] as const;
+
+  const costSource =
+    row.costOfGoodsSource === "user-unit-cost"
+      ? `${formatKopecks(row.unitCostKopecks ?? 0)} × ${row.quantity} шт.`
+      : row.costOfGoodsSource === "report"
+        ? "Поле исходного отчёта"
+        : "Не указана";
+
+  return (
+    <details className="source-breakdown">
+      <summary>Откуда суммы</summary>
+      <dl>
+        {sourceRows.map(([label, value, source]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>
+              {value === null ? "Нет данных" : formatKopecks(value)}
+              <small>{source}</small>
+            </dd>
+          </div>
+        ))}
+        <div>
+          <dt>Себестоимость</dt>
+          <dd>
+            {row.profit.costOfGoodsKopecks === null
+              ? "Не указана"
+              : formatKopecks(row.profit.costOfGoodsKopecks)}
+            <small>{costSource}</small>
+          </dd>
+        </div>
+        <div>
+          <dt>Реклама</dt>
+          <dd>
+            Нет данных<small>Не найдена в этом отчёте</small>
+          </dd>
+        </div>
+      </dl>
+    </details>
+  );
+}
+
 function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
   return (
     <section className="analysis-result" aria-labelledby="analysis-title">
@@ -43,8 +181,8 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
       </div>
 
       <p className="analysis-notice">
-        Это оценка до себестоимости и рекламы. Она показывает остаток после
-        известных удержаний WB, но пока не является чистой прибылью.
+        Результат учитывает удержания WB и введённую себестоимость. Рекламы в
+        этом отчёте нет, поэтому положительная сумма — ещё не чистая прибыль.
       </p>
 
       <dl className="analysis-summary">
@@ -53,11 +191,15 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
           <dd>{formatKopecks(analysis.totalRevenueKopecks)}</dd>
         </div>
         <div>
-          <dt>Учтённые расходы</dt>
+          <dt>Удержания WB</dt>
           <dd>{formatKopecks(analysis.totalKnownExpensesKopecks)}</dd>
         </div>
+        <div>
+          <dt>Себестоимость</dt>
+          <dd>{formatKopecks(analysis.totalKnownCostOfGoodsKopecks)}</dd>
+        </div>
         <div className="analysis-summary-accent">
-          <dt>Оценка остатка</dt>
+          <dt>Результат до рекламы</dt>
           <dd>{formatKopecks(analysis.estimatedProfitKopecks)}</dd>
         </div>
       </dl>
@@ -65,7 +207,16 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
       <div className="analysis-meta">
         <span>{analysis.sourceRowCount} операций</span>
         <span>{analysis.skuCount} SKU</span>
-        <span>Сумма к выплате сверена до копейки</span>
+        <span>
+          {analysis.missingCostSkuCount > 0
+            ? `Нужна себестоимость для ${analysis.missingCostSkuCount} SKU`
+            : "Себестоимость заполнена для всех SKU"}
+        </span>
+        <span>
+          {analysis.lossSkuCount > 0
+            ? `${analysis.lossSkuCount} убыточных SKU`
+            : "Убыточных SKU по известным расходам нет"}
+        </span>
       </div>
 
       {analysis.warnings.length > 0 && (
@@ -89,9 +240,11 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
           <thead>
             <tr>
               <th scope="col">Товар</th>
+              <th scope="col">Количество</th>
               <th scope="col">Выручка</th>
-              <th scope="col">Удержания</th>
-              <th scope="col">Остаток</th>
+              <th scope="col">Удержания WB</th>
+              <th scope="col">Себестоимость</th>
+              <th scope="col">Результат</th>
             </tr>
           </thead>
           <tbody>
@@ -100,11 +253,37 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
                 <th scope="row">
                   <strong>{row.productName ?? row.sku}</strong>
                   <span>{row.sku}</span>
+                  <SourceBreakdown row={row} />
                 </th>
+                <td>{row.quantity} шт.</td>
                 <td>{formatKopecks(row.profit.revenueKopecks)}</td>
                 <td>{formatKopecks(row.profit.marketplaceExpensesKopecks)}</td>
-                <td className={row.profit.isLoss ? "analysis-loss" : undefined}>
-                  {formatKopecks(row.profit.operatingProfitKopecks)}
+                <td>
+                  {row.profit.costOfGoodsKopecks === null
+                    ? "Не указана"
+                    : formatKopecks(row.profit.costOfGoodsKopecks)}
+                </td>
+                <td>
+                  <strong
+                    className={row.profit.isLoss ? "analysis-loss" : undefined}
+                  >
+                    {formatKopecks(row.profit.operatingProfitKopecks)}
+                  </strong>
+                  <span
+                    className={`analysis-status ${
+                      row.profit.isLoss
+                        ? "analysis-status-loss"
+                        : row.costOfGoodsSource === "missing"
+                          ? "analysis-status-missing"
+                          : "analysis-status-positive"
+                    }`}
+                  >
+                    {row.profit.isLoss
+                      ? "Убыток"
+                      : row.costOfGoodsSource === "missing"
+                        ? "Нужна себестоимость"
+                        : "Пока в плюсе"}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -121,8 +300,24 @@ export function ReportUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [format, setFormat] = useState<"CSV" | "XLSX" | null>(null);
   const [error, setError] = useState("");
-  const [analysis, setAnalysis] = useState<ReportAnalysis | null>(null);
+  const [report, setReport] = useState<ParsedReport | null>(null);
+  const [costValues, setCostValues] = useState<Record<string, string>>({});
+  const [costErrors, setCostErrors] = useState<Record<string, string>>({});
+  const [appliedUnitCosts, setAppliedUnitCosts] = useState<
+    Record<string, number>
+  >({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const analysis = useMemo(
+    () => (report ? analyzeParsedReport(report, appliedUnitCosts) : null),
+    [appliedUnitCosts, report],
+  );
+
+  function resetAnalysis() {
+    setReport(null);
+    setCostValues({});
+    setCostErrors({});
+    setAppliedUnitCosts({});
+  }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const selectedFile = event.target.files?.[0];
@@ -138,7 +333,7 @@ export function ReportUpload() {
     if (!result.ok) {
       setFile(null);
       setFormat(null);
-      setAnalysis(null);
+      resetAnalysis();
       setError(result.message);
       event.target.value = "";
       return;
@@ -146,7 +341,7 @@ export function ReportUpload() {
 
     setFile(selectedFile);
     setFormat(result.format);
-    setAnalysis(null);
+    resetAnalysis();
     setError("");
   }
 
@@ -154,7 +349,7 @@ export function ReportUpload() {
     analysisRunRef.current += 1;
     setFile(null);
     setFormat(null);
-    setAnalysis(null);
+    resetAnalysis();
     setIsAnalyzing(false);
     setError("");
     if (inputRef.current) {
@@ -169,7 +364,7 @@ export function ReportUpload() {
     }
 
     setIsAnalyzing(true);
-    setAnalysis(null);
+    resetAnalysis();
     setError("");
 
     const runId = ++analysisRunRef.current;
@@ -177,7 +372,7 @@ export function ReportUpload() {
     try {
       const parsed = await parseWildberriesApiPreviewWorkbook(file);
       if (analysisRunRef.current === runId) {
-        setAnalysis(analyzeParsedReport(parsed));
+        setReport(parsed);
       }
     } catch (cause) {
       if (analysisRunRef.current === runId) {
@@ -191,6 +386,57 @@ export function ReportUpload() {
       if (analysisRunRef.current === runId) {
         setIsAnalyzing(false);
       }
+    }
+  }
+
+  function handleCostChange(sku: string, value: string) {
+    setCostValues((current) => ({ ...current, [sku]: value }));
+    setCostErrors((current) => {
+      if (!current[sku]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[sku];
+      return next;
+    });
+  }
+
+  function handleCostSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!report) {
+      return;
+    }
+
+    const nextCosts: Record<string, number> = {};
+    const nextErrors: Record<string, string> = {};
+
+    for (const row of report.rows) {
+      if (row.quantity <= 0) {
+        continue;
+      }
+
+      const value = costValues[row.sku]?.trim() ?? "";
+      if (!value) {
+        continue;
+      }
+
+      try {
+        const cost = parseRublesToKopecks(value, `unitCost:${row.sku}`);
+        if (cost < 0) {
+          throw new RangeError("negative cost");
+        }
+        nextCosts[row.sku] = cost;
+      } catch {
+        nextErrors[row.sku] =
+          "Введите неотрицательную сумму: например, 850 или 850,50";
+      }
+    }
+
+    setCostErrors(nextErrors);
+    if (Object.keys(nextErrors).length === 0) {
+      setAppliedUnitCosts(nextCosts);
     }
   }
 
@@ -281,6 +527,16 @@ export function ReportUpload() {
         на сервере
       </p>
 
+      {report && (
+        <CostEditor
+          report={report}
+          values={costValues}
+          errors={costErrors}
+          appliedCosts={appliedUnitCosts}
+          onChange={handleCostChange}
+          onSubmit={handleCostSubmit}
+        />
+      )}
       {analysis && <AnalysisResult analysis={analysis} />}
     </div>
   );
