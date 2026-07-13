@@ -2319,6 +2319,14 @@ tbody tr:hover {
   line-height: 1.35;
 }
 
+.cost-form-error {
+  margin: 10px 0 0;
+  color: #ffc0b1;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .cost-submit {
   min-width: 220px;
   margin-top: 16px;
@@ -2369,6 +2377,21 @@ tbody tr:hover {
   background: #f2f6ed;
   font-size: 13px;
   line-height: 1.55;
+}
+
+.analysis-calculation-status {
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  color: #245e3b;
+  border: 1px solid #b9dca5;
+  border-radius: 11px;
+  background: #eaf7df;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.analysis-calculation-status strong {
+  color: #174f31;
 }
 
 .analysis-summary {

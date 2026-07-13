@@ -63,6 +63,13 @@ describe("ReportUpload", () => {
     expect(screen.getByText("4 операций")).toBeTruthy();
     expect(screen.getByText("3 SKU")).toBeTruthy();
 
+    await user.click(
+      screen.getByRole("button", { name: "Пересчитать прибыль" }),
+    );
+    expect(
+      screen.getByText("Введите себестоимость хотя бы для одного SKU."),
+    ).toBeTruthy();
+
     await user.type(
       screen.getByLabelText(
         "Себестоимость одной единицы для Органайзер для дома, ₽",
@@ -95,6 +102,11 @@ describe("ReportUpload", () => {
     expect(screen.getByText("2 убыточных SKU")).toBeTruthy();
     expect(screen.getAllByText("Убыток")).toHaveLength(2);
     expect(screen.getAllByText("Пока в плюсе")).toHaveLength(1);
+    expect(
+      screen.getByText(
+        "Себестоимость учтена для 3 из 3 SKU. Результат ниже обновлён.",
+      ),
+    ).toBeTruthy();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -136,6 +148,9 @@ describe("ReportUpload", () => {
       screen.getByText(
         "Введите неотрицательную сумму: например, 850 или 850,50",
       ),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Исправьте отмеченные суммы и повторите пересчёт."),
     ).toBeTruthy();
     expect(
       screen.getByText("Результат до рекламы").nextElementSibling?.textContent,

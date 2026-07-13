@@ -37,6 +37,7 @@ type CostEditorProps = {
   report: ParsedReport;
   values: Readonly<Record<string, string>>;
   errors: Readonly<Record<string, string>>;
+  formError: string;
   appliedCosts: Readonly<Record<string, number>>;
   onChange: (sku: string, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -46,6 +47,7 @@ function CostEditor({
   report,
   values,
   errors,
+  formError,
   appliedCosts,
   onChange,
   onSubmit,
@@ -109,6 +111,11 @@ function CostEditor({
         <button className="button button-primary cost-submit" type="submit">
           Пересчитать прибыль
         </button>
+        {formError && (
+          <p className="cost-form-error" role="alert">
+            {formError}
+          </p>
+        )}
       </form>
     </section>
   );
@@ -169,7 +176,13 @@ function SourceBreakdown({ row }: { row: ReportAnalysis["rows"][number] }) {
   );
 }
 
-function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
+function AnalysisResult({
+  analysis,
+  calculationMessage,
+}: {
+  analysis: ReportAnalysis;
+  calculationMessage: string;
+}) {
   return (
     <section className="analysis-result" aria-labelledby="analysis-title">
       <div className="analysis-heading">
@@ -179,6 +192,12 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
         </div>
         <span className="analysis-badge">Локально</span>
       </div>
+
+      {calculationMessage && (
+        <p className="analysis-calculation-status" role="status">
+          <strong>Готово.</strong> {calculationMessage}
+        </p>
+      )}
 
       <p className="analysis-notice">
         Результат учитывает удержания WB и введённую себестоимость. Рекламы в
@@ -296,6 +315,7 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
 
 export function ReportUpload() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const analysisRef = useRef<HTMLDivElement>(null);
   const analysisRunRef = useRef(0);
   const [file, setFile] = useState<File | null>(null);
   const [format, setFormat] = useState<"CSV" | "XLSX" | null>(null);
@@ -303,6 +323,8 @@ export function ReportUpload() {
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [costValues, setCostValues] = useState<Record<string, string>>({});
   const [costErrors, setCostErrors] = useState<Record<string, string>>({});
+  const [costFormError, setCostFormError] = useState("");
+  const [calculationMessage, setCalculationMessage] = useState("");
   const [appliedUnitCosts, setAppliedUnitCosts] = useState<
     Record<string, number>
   >({});
@@ -316,6 +338,8 @@ export function ReportUpload() {
     setReport(null);
     setCostValues({});
     setCostErrors({});
+    setCostFormError("");
+    setCalculationMessage("");
     setAppliedUnitCosts({});
   }
 
@@ -391,6 +415,7 @@ export function ReportUpload() {
 
   function handleCostChange(sku: string, value: string) {
     setCostValues((current) => ({ ...current, [sku]: value }));
+    setCostFormError("");
     setCostErrors((current) => {
       if (!current[sku]) {
         return current;
@@ -435,9 +460,28 @@ export function ReportUpload() {
     }
 
     setCostErrors(nextErrors);
-    if (Object.keys(nextErrors).length === 0) {
-      setAppliedUnitCosts(nextCosts);
+    if (Object.keys(nextErrors).length > 0) {
+      setCostFormError("Исправьте отмеченные суммы и повторите пересчёт.");
+      return;
     }
+
+    const completedCount = Object.keys(nextCosts).length;
+    if (completedCount === 0) {
+      setCostFormError("Введите себестоимость хотя бы для одного SKU.");
+      return;
+    }
+
+    setCostFormError("");
+    setAppliedUnitCosts(nextCosts);
+    setCalculationMessage(
+      `Себестоимость учтена для ${completedCount} из ${report.rows.filter((row) => row.quantity > 0).length} SKU. Результат ниже обновлён.`,
+    );
+    window.requestAnimationFrame(() => {
+      analysisRef.current?.scrollIntoView?.({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   }
 
   const dropzoneClassName = [
@@ -532,12 +576,20 @@ export function ReportUpload() {
           report={report}
           values={costValues}
           errors={costErrors}
+          formError={costFormError}
           appliedCosts={appliedUnitCosts}
           onChange={handleCostChange}
           onSubmit={handleCostSubmit}
         />
       )}
-      {analysis && <AnalysisResult analysis={analysis} />}
+      {analysis && (
+        <div ref={analysisRef}>
+          <AnalysisResult
+            analysis={analysis}
+            calculationMessage={calculationMessage}
+          />
+        </div>
+      )}
     </div>
   );
 }
