@@ -1,0 +1,55 @@
+name: Daily report reminder
+
+on:
+  schedule:
+    # 18:35 по Москве с понедельника по пятницу; смещение снижает риск задержки в начале часа.
+    - cron: "35 18 * * 1-5"
+      timezone: "Europe/Moscow"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: daily-report-issue
+  cancel-in-progress: false
+
+jobs:
+  create-report-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create issue once per Moscow date
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          issue_date="$(TZ=Europe/Moscow date +%F)"
+          title="Отчёт за день — ${issue_date}"
+
+          if gh issue list --repo "$GH_REPO" --state all --limit 100 --json title \
+            | jq -e --arg title "$title" 'any(.[]; .title == $title)' >/dev/null; then
+            echo "Issue already exists: $title"
+            exit 0
+          fi
+
+          body=$(cat <<'EOF'
+          ## Daily report
+
+          **Done:**
+
+          **Checks:**
+
+          **Needs user review:**
+
+          **Blockers:**
+
+          **Moved:**
+
+          **Next step:**
+          EOF
+          )
+
+          gh issue create --repo "$GH_REPO" --title "$title" --body "$body"

@@ -1,0 +1,68 @@
+name: Weekly sprint planning
+
+on:
+  schedule:
+    # 09:05 по Москве каждый понедельник; смещение снижает риск задержки в начале часа.
+    - cron: "5 9 * * 1"
+      timezone: "Europe/Moscow"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: weekly-sprint-issue
+  cancel-in-progress: false
+
+jobs:
+  create-planning-issue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create issue once per Moscow date
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          issue_date="$(TZ=Europe/Moscow date +%F)"
+          title="План спринта — неделя ${issue_date}"
+
+          if gh issue list --repo "$GH_REPO" --state all --limit 100 --json title \
+            | jq -e --arg title "$title" 'any(.[]; .title == $title)' >/dev/null; then
+            echo "Issue already exists: $title"
+            exit 0
+          fi
+
+          body=$(cat <<'EOF'
+          ## Планирование недели
+
+          - [ ] Проверить `PROJECT_STATE.md`
+          - [ ] Проверить незавершённые задачи и перенести важное
+          - [ ] Проверить открытые баги
+          - [ ] Проверить упавшие тесты и CI
+          - [ ] Проверить пользовательскую обратную связь
+          - [ ] Сверить риски и technical debt
+          - [ ] Составить проверяемый план недели
+          - [ ] Выделить задачи, влияющие на деньги, конверсию или удержание
+
+          ## Результат прошлого спринта
+
+          <!-- Что завершено, что перенесено и почему? -->
+
+          ## Цель недели
+
+          <!-- Один измеримый пользовательский или коммерческий результат. -->
+
+          ## Задачи
+
+          - [ ]
+
+          ## Риски и проверка пользователя
+
+          <!-- Блокеры, допущения и решения, которые должен подтвердить пользователь. -->
+          EOF
+          )
+
+          gh issue create --repo "$GH_REPO" --title "$title" --body "$body"

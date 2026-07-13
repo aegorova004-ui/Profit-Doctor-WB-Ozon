@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Marketplace {
+  WILDBERRIES
+  OZON
+  UNKNOWN
+}
+
+enum ReportStatus {
+  UPLOADED
+  PARSING
+  READY
+  FAILED
+}
+
+model User {
+  id                 String            @id @default(cuid())
+  email              String            @unique @db.Citext
+  emailVerifiedAt    DateTime?
+  telegramId         String?           @unique
+  subscriptionPlanId String?
+  subscriptionPlan   SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id], onDelete: SetNull)
+  reports            UploadedReport[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+}
+
+model SubscriptionPlan {
+  id                    String   @id @default(cuid())
+  code                  String   @unique
+  name                  String
+  monthlyPriceKopecks   Int
+  monthlyReportLimit    Int?
+  reportRowLimit        Int?
+  isActive              Boolean  @default(true)
+  users                 User[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model UploadedReport {
+  id               String                  @id @default(cuid())
+  userId           String
+  user             User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  marketplace      Marketplace             @default(UNKNOWN)
+  status           ReportStatus            @default(UPLOADED)
+  originalFileName String
+  fileSizeBytes    Int
+  rowCount         Int                     @default(0)
+  warningCount     Int                     @default(0)
+  failureCode      String?
+  importedAt       DateTime?
+  rows             ReportRow[]
+  snapshots        ProductProfitSnapshot[]
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  @@index([userId, createdAt])
+}
+
+model ReportRow {
+  id                               String         @id @default(cuid())
+  reportId                         String
+  report                           UploadedReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  sourceRowNumber                  Int
+  sku                              String
+  offerId                          String?
+  productName                      String?
+  quantity                         Int            @default(0)
+  revenue                          Decimal?       @db.Decimal(18, 2)
+  marketplaceCommission           Decimal?       @db.Decimal(18, 2)
+  logistics                       Decimal?       @db.Decimal(18, 2)
+  storage                          Decimal?       @db.Decimal(18, 2)
+  returns                          Decimal?       @db.Decimal(18, 2)
+  penalties                        Decimal?       @db.Decimal(18, 2)
+  advertising                     Decimal?       @db.Decimal(18, 2)
+  costOfGoods                      Decimal?       @db.Decimal(18, 2)
+  otherExpenses                    Decimal?       @db.Decimal(18, 2)
+  currency                         String         @default("RUB")
+  missingFields                    String[]       @default([])
+  createdAt                        DateTime       @default(now())
+
+  @@unique([reportId, sourceRowNumber])
+  @@index([reportId, sku])
+}
+
+model ProductProfitSnapshot {
+  id                     String         @id @default(cuid())
+  reportId               String
+  report                 UploadedReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  sku                    String
+  revenue                Decimal        @db.Decimal(18, 2)
+  marketplaceExpenses    Decimal        @db.Decimal(18, 2)
+  costOfGoods             Decimal?       @db.Decimal(18, 2)
+  grossProfit             Decimal?       @db.Decimal(18, 2)
+  operatingProfit         Decimal        @db.Decimal(18, 2)
+  marginPercent           Decimal?       @db.Decimal(9, 4)
+  roiPercent              Decimal?       @db.Decimal(9, 4)
+  isEstimate              Boolean        @default(false)
+  isLoss                  Boolean        @default(false)
+  missingFields           String[]       @default([])
+  calculatedAt            DateTime       @default(now())
+
+  @@unique([reportId, sku])
+  @@index([reportId, isLoss])
+}
