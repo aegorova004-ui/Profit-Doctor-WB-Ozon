@@ -44,7 +44,9 @@ export function ReportExportActions({
       new Blob([csv], { type: "text/csv;charset=utf-8" }),
       createReportExportFileName(sourceFileName, "csv"),
     );
-    setMessage("CSV готов. Файл сохранён на устройство.");
+    setMessage(
+      "CSV готов. Это технический формат без оформления; для просмотра в Excel выбирайте XLSX.",
+    );
   }
 
   async function handleXlsxDownload() {
@@ -65,7 +67,9 @@ export function ReportExportActions({
       );
       const blob = await workbook.toBlob();
       downloadBlob(blob, createReportExportFileName(sourceFileName, "xlsx"));
-      setMessage("XLSX готов. Файл сохранён на устройство.");
+      setMessage(
+        "XLSX готов. Откройте файл с расширением .xlsx — в нём сохранены ширины колонок и два листа.",
+      );
     } catch {
       setError("Не удалось создать XLSX. Попробуйте скачать CSV.");
     } finally {
@@ -83,24 +87,30 @@ export function ReportExportActions({
           источники сумм и рекомендации по каждому SKU.
         </p>
       </div>
-      <div className="report-export-actions">
-        <button
-          className="button report-export-secondary"
-          type="button"
-          onClick={handleCsvDownload}
-        >
-          Скачать CSV
-          <small>Для таблиц и импорта</small>
-        </button>
-        <button
-          className="button button-primary"
-          type="button"
-          disabled={isCreatingXlsx}
-          onClick={handleXlsxDownload}
-        >
-          {isCreatingXlsx ? "Создаём XLSX…" : "Скачать XLSX"}
-          <small>Сводка и лист по SKU</small>
-        </button>
+      <div className="report-export-controls">
+        <div className="report-export-actions">
+          <button
+            className="button report-export-secondary"
+            type="button"
+            onClick={handleCsvDownload}
+          >
+            CSV для импорта
+            <small>Без оформления и ширины колонок</small>
+          </button>
+          <button
+            className="button button-primary"
+            type="button"
+            disabled={isCreatingXlsx}
+            onClick={handleXlsxDownload}
+          >
+            {isCreatingXlsx ? "Создаём XLSX…" : "XLSX для Excel"}
+            <small>Оформленный файл с двумя листами</small>
+          </button>
+        </div>
+        <p className="report-export-format-note">
+          Для просмотра выбирайте XLSX. CSV нужен для импорта и не хранит
+          оформление таблицы.
+        </p>
       </div>
       <div className="report-export-status" aria-live="polite">
         {message && <p>{message}</p>}

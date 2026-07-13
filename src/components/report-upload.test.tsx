@@ -154,18 +154,28 @@ describe("ReportUpload", () => {
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(() => undefined);
 
-    await user.click(screen.getByRole("button", { name: /Скачать CSV/ }));
+    expect(
+      screen.getByText(
+        "Для просмотра выбирайте XLSX. CSV нужен для импорта и не хранит оформление таблицы.",
+      ),
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /CSV для импорта/ }));
     expect(createObjectUrl).toHaveBeenCalledTimes(1);
     expect(
       (downloadClick.mock.instances[0] as HTMLAnchorElement).download,
     ).toBe("profit-doctor-wb-report.csv");
     expect(
-      screen.getByText("CSV готов. Файл сохранён на устройство."),
+      screen.getByText(
+        "CSV готов. Это технический формат без оформления; для просмотра в Excel выбирайте XLSX.",
+      ),
     ).toBeTruthy();
 
-    await user.click(screen.getByRole("button", { name: /Скачать XLSX/ }));
+    await user.click(screen.getByRole("button", { name: /XLSX для Excel/ }));
     expect(
-      await screen.findByText("XLSX готов. Файл сохранён на устройство."),
+      await screen.findByText(
+        "XLSX готов. Откройте файл с расширением .xlsx — в нём сохранены ширины колонок и два листа.",
+      ),
     ).toBeTruthy();
     expect(exportMocks.writeXlsxFile).toHaveBeenCalledTimes(1);
     expect(
