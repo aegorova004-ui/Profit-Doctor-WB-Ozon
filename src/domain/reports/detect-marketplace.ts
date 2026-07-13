@@ -5,6 +5,9 @@ const MARKETPLACE_MARKERS: Record<ReportMarketplace, readonly string[]> = {
     "код номенклатуры",
     "артикул поставщика",
     "обоснование для оплаты",
+    "nm_id",
+    "doc_type_name",
+    "ppvz_for_pay",
   ],
   ozon: ["sku", "offer_id", "тип начисления"],
 };
