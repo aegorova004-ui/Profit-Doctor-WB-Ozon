@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { ProfitDoctorMascot } from "@/components/profit-doctor-mascot";
@@ -350,80 +351,17 @@ export default function Home() {
               </ul>
             </div>
 
-            <aside
-              className="diagnostic-card"
-              aria-label="Учебный пример диагностики магазина"
-            >
-              <div className="diagnostic-windowbar" aria-hidden="true">
-                <span className="window-dots">
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                <span>profit-doctor.demo</span>
-              </div>
-              <div className="diagnostic-content">
-                <div className="diagnostic-head">
-                  <div>
-                    <p className="card-kicker">Диагностика магазина</p>
-                    <h2>Май 2026</h2>
-                  </div>
-                  <span className="demo-chip">Демо</span>
-                </div>
-                <div className="diagnostic-summary">
-                  <div>
-                    <span>Выручка</span>
-                    <strong>416 860 ₽</strong>
-                  </div>
-                  <div>
-                    <span>Прибыль</span>
-                    <strong className="profit-value">+17 800 ₽</strong>
-                  </div>
-                  <div>
-                    <span>Маржа</span>
-                    <strong>4,3%</strong>
-                  </div>
-                </div>
-                <div className="health-row">
-                  <span>Здоровье ассортимента</span>
-                  <strong>58 / 100</strong>
-                </div>
-                <div className="health-track" aria-hidden="true">
-                  <span />
-                </div>
-                <div className="alert-card">
-                  <span className="alert-icon" aria-hidden="true">
-                    !
-                  </span>
-                  <div>
-                    <strong>3 товара требуют внимания</strong>
-                    <p>Они забрали 18 350 ₽ прибыли за период</p>
-                  </div>
-                </div>
-                <div className="mini-chart" aria-hidden="true">
-                  <span style={{ height: "42%" }} />
-                  <span style={{ height: "64%" }} />
-                  <span className="negative" style={{ height: "30%" }} />
-                  <span style={{ height: "76%" }} />
-                  <span style={{ height: "54%" }} />
-                  <span className="negative" style={{ height: "38%" }} />
-                  <span style={{ height: "88%" }} />
-                </div>
-                <div className="diagnostic-doctor-note">
-                  <ProfitDoctorMascot
-                    className="diagnostic-mascot"
-                    gradientId="diagnostic"
-                  />
-                  <p>
-                    <span>Комментарий Profit Doctor</span>
-                    <strong>Начнём с трёх SKU, которые тянут маржу вниз</strong>
-                  </p>
-                </div>
-                <p className="demo-disclaimer">
-                  Учебные данные — не результат реального магазина
-                </p>
-              </div>
-            </aside>
+            <figure className="diagnostic-visual">
+              <Image
+                className="diagnostic-visual-image"
+                src="/images/profit-diagnostic-card.png"
+                alt="Учебная диагностика магазина: выручка 416 860 ₽, прибыль 17 800 ₽, маржа 4,3%"
+                width={1128}
+                height={1394}
+                sizes="(max-width: 850px) min(540px, 100vw - 48px), 480px"
+                priority
+              />
+            </figure>
           </div>
         </section>
 
@@ -538,11 +476,7 @@ export default function Home() {
           className="doctor-tour container"
           aria-label="Profit Doctor объясняет"
         >
-          <ProfitDoctorMascot
-            className="doctor-tour-mascot"
-            gradientId="tour"
-            label="Маскот Profit Doctor с планшетом диагностики"
-          />
+          <ProfitDoctorMascot className="doctor-tour-mascot" />
           <div className="doctor-tour-copy">
             <span>Profit Doctor объясняет</span>
             <h2>Проведу от симптома к решению</h2>
