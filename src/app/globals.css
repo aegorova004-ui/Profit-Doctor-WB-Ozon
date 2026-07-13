@@ -2714,6 +2714,91 @@ tbody tr:hover {
   line-height: 1.5;
 }
 
+.report-export {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px 28px;
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid #d6dfd2;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f6f9f3, #eef5e9);
+}
+
+.report-export .eyebrow {
+  margin: 0 0 7px;
+}
+
+.report-export h3 {
+  margin: 0;
+  font-size: clamp(19px, 2.5vw, 26px);
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.report-export > div > p:last-child {
+  max-width: 650px;
+  margin: 9px 0 0;
+  color: #617068;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.report-export-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 9px;
+}
+
+.report-export-actions .button {
+  min-width: 174px;
+  min-height: 58px;
+  display: grid;
+  gap: 4px;
+  place-content: center;
+  padding: 10px 16px;
+  text-align: center;
+}
+
+.report-export-actions .button small {
+  color: inherit;
+  font-size: 9px;
+  font-weight: 600;
+  opacity: 0.68;
+}
+
+.report-export-secondary {
+  color: #173c2a;
+  border: 1px solid #aac09f;
+  background: #fff;
+}
+
+.report-export-secondary:hover {
+  border-color: #739064;
+  background: #f8fbf6;
+}
+
+.report-export-status {
+  min-height: 0;
+  grid-column: 1 / -1;
+}
+
+.report-export-status:empty {
+  display: none;
+}
+
+.report-export-status p {
+  margin: -3px 0 0;
+  color: #367047;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.report-export-status .report-export-error {
+  color: #a5352f;
+}
+
 .analysis-table-wrap {
   margin-top: 18px;
   overflow-x: auto;
@@ -3482,6 +3567,21 @@ tbody tr:hover {
 
   .profit-diagnosis-card-heading > strong {
     font-size: 18px;
+  }
+
+  .report-export {
+    grid-template-columns: 1fr;
+    padding: 18px 16px;
+  }
+
+  .report-export-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .report-export-actions .button {
+    width: 100%;
+    min-width: 0;
   }
 
   .analysis-mobile-values {

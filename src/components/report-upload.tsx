@@ -17,6 +17,7 @@ import {
   ReportParseError,
 } from "@/domain/reports/wildberries-api-preview";
 import { validateReportFile } from "@/domain/reports/validate-upload";
+import { ReportExportActions } from "./report-export-actions";
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) {
@@ -455,7 +456,13 @@ function DiagnosisPanel({ analysis }: { analysis: ReportAnalysis }) {
   );
 }
 
-function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
+function AnalysisResult({
+  analysis,
+  sourceFileName,
+}: {
+  analysis: ReportAnalysis;
+  sourceFileName: string;
+}) {
   return (
     <section className="analysis-result" aria-labelledby="analysis-title">
       <div className="analysis-heading">
@@ -519,6 +526,11 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
       )}
 
       <DiagnosisPanel analysis={analysis} />
+
+      <ReportExportActions
+        analysis={analysis}
+        sourceFileName={sourceFileName}
+      />
 
       <div className="analysis-table-wrap analysis-table-desktop">
         <table className="analysis-table">
@@ -835,7 +847,10 @@ export function ReportUpload() {
       )}
       {analysis && (
         <div>
-          <AnalysisResult analysis={analysis} />
+          <AnalysisResult
+            analysis={analysis}
+            sourceFileName={file?.name ?? "report.xlsx"}
+          />
         </div>
       )}
     </div>

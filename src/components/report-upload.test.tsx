@@ -8,9 +8,21 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ReportUpload } from "./report-upload";
 
+const exportMocks = vi.hoisted(() => ({
+  toBlob: vi.fn(async () => new Blob(["xlsx"])),
+  writeXlsxFile: vi.fn(),
+}));
+
+vi.mock("write-excel-file/browser", () => ({
+  default: exportMocks.writeXlsxFile.mockImplementation(() => ({
+    toBlob: exportMocks.toBlob,
+  })),
+}));
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.clearAllMocks();
 });
 
 describe("ReportUpload", () => {
@@ -126,6 +138,39 @@ describe("ReportUpload", () => {
       ),
     ).toBeTruthy();
     expect(diagnosis.getAllByRole("article")).toHaveLength(3);
+    const createObjectUrl = vi
+      .fn()
+      .mockReturnValueOnce("blob:csv")
+      .mockReturnValueOnce("blob:xlsx");
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: createObjectUrl,
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: vi.fn(),
+    });
+    const downloadClick = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+
+    await user.click(screen.getByRole("button", { name: /Скачать CSV/ }));
+    expect(createObjectUrl).toHaveBeenCalledTimes(1);
+    expect(
+      (downloadClick.mock.instances[0] as HTMLAnchorElement).download,
+    ).toBe("profit-doctor-wb-report.csv");
+    expect(
+      screen.getByText("CSV готов. Файл сохранён на устройство."),
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: /Скачать XLSX/ }));
+    expect(
+      await screen.findByText("XLSX готов. Файл сохранён на устройство."),
+    ).toBeTruthy();
+    expect(exportMocks.writeXlsxFile).toHaveBeenCalledTimes(1);
+    expect(
+      (downloadClick.mock.instances[1] as HTMLAnchorElement).download,
+    ).toBe("profit-doctor-wb-report.xlsx");
     expect(
       screen.getByText(
         "Себестоимость учтена для 3 из 3 SKU. Результат ниже обновлён.",
