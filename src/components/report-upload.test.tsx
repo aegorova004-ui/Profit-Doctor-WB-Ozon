@@ -117,6 +117,11 @@ describe("ReportUpload", () => {
         "Себестоимость учтена для 3 из 3 SKU. Результат ниже обновлён.",
       ),
     ).toBeTruthy();
+    expect(
+      within(costEditor as HTMLElement)
+        .getByRole("link", { name: "Показать результат ↓" })
+        .getAttribute("href"),
+    ).toBe("#analysis-title");
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 

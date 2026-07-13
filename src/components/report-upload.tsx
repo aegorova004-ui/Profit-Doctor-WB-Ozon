@@ -120,7 +120,10 @@ function CostEditor({
         )}
         {calculationMessage && !formError && (
           <p className="cost-form-success" role="status">
-            <strong>Готово.</strong> {calculationMessage}
+            <span>
+              <strong>Готово.</strong> {calculationMessage}
+            </span>
+            <a href="#analysis-title">Показать результат ↓</a>
           </p>
         )}
       </form>

@@ -2005,7 +2005,16 @@ tbody tr:hover {
 
 .upload-page {
   display: block;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   padding-block: 126px 90px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .upload-card {
@@ -2348,6 +2357,7 @@ tbody tr:hover {
   margin-top: 32px;
   padding-top: 30px;
   border-top: 1px solid var(--line);
+  scroll-margin-top: 24px;
 }
 
 .analysis-heading {
@@ -2392,6 +2402,10 @@ tbody tr:hover {
 }
 
 .cost-form-success {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   margin: 12px 0 0;
   padding: 13px 15px;
   color: #dfffc5;
@@ -2404,6 +2418,20 @@ tbody tr:hover {
 
 .cost-form-success strong {
   color: #b8f36b;
+}
+
+.cost-form-success a {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  color: #0b241a;
+  border-radius: 8px;
+  background: #b8f36b;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.cost-form-success a:hover {
+  background: #c9ff83;
 }
 
 .analysis-summary {
@@ -3194,6 +3222,18 @@ tbody tr:hover {
   .cost-submit {
     width: 100%;
     min-width: 0;
+  }
+
+  .cost-form-success {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cost-form-success a {
+    min-height: 44px;
+    display: grid;
+    place-items: center;
+    text-align: center;
   }
 
   .analysis-heading {
