@@ -1,4 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
+
+import { ProfitDoctorMascot } from "@/components/profit-doctor-mascot";
 
 const audiences = [
   {
@@ -85,7 +88,20 @@ const tariffs = [
     price: "0 ₽",
     period: "для проверки гипотезы",
     description: "Один отчёт в месяц и ограничение по строкам.",
-    features: ["1 отчёт в месяц", "Базовые метрики", "Список убыточных SKU"],
+    features: [
+      {
+        label: "1 отчёт в месяц",
+        help: "Можно загрузить и проверить один отчёт за календарный месяц",
+      },
+      {
+        label: "Базовые метрики",
+        help: "Покажем выручку, прибыль и маржу по товарам, если данных достаточно",
+      },
+      {
+        label: "Список убыточных SKU",
+        help: "Выделим позиции, где рассчитанная прибыль за период ниже нуля",
+      },
+    ],
     action: "Попробовать загрузку",
     href: "/upload",
   },
@@ -94,7 +110,21 @@ const tariffs = [
     price: "990 ₽",
     period: "в месяц",
     description: "Для небольшого магазина и регулярной проверки экономики.",
-    features: ["До 5 отчётов", "Рекомендации по SKU", "Экспорт результата"],
+    inherits: "Всё из Free, а также",
+    features: [
+      {
+        label: "До 5 отчётов",
+        help: "Можно анализировать до пяти отчётов за календарный месяц",
+      },
+      {
+        label: "Рекомендации по SKU",
+        help: "Подскажем, какие расходы и показатели стоит проверить у проблемного товара",
+      },
+      {
+        label: "Экспорт результата",
+        help: "Итоговый расчёт можно будет скачать и использовать вне сервиса",
+      },
+    ],
     action: "Оставить заявку",
     href: "#contact",
     featured: true,
@@ -104,7 +134,21 @@ const tariffs = [
     price: "2 490 ₽",
     period: "в месяц",
     description: "Для растущего бренда с несколькими кабинетами.",
-    features: ["До 20 отчётов", "WB и Ozon", "История изменений"],
+    inherits: "Всё из Start, а также",
+    features: [
+      {
+        label: "До 20 отчётов",
+        help: "Можно анализировать до двадцати отчётов за календарный месяц",
+      },
+      {
+        label: "WB и Ozon",
+        help: "Можно анализировать отчёты Wildberries и Ozon в одном тарифе",
+      },
+      {
+        label: "История изменений",
+        help: "Сравним результаты по периодам, чтобы увидеть динамику прибыли и маржи",
+      },
+    ],
     action: "Оставить заявку",
     href: "#contact",
   },
@@ -113,7 +157,21 @@ const tariffs = [
     price: "6 990 ₽",
     period: "в месяц",
     description: "Для команд, которые ведут несколько продавцов.",
-    features: ["Клиентские проекты", "Общие отчёты", "Приоритетная поддержка"],
+    inherits: "Всё из Pro, а также",
+    features: [
+      {
+        label: "Клиентские проекты",
+        help: "Данные и результаты разных продавцов будут разделены по проектам",
+      },
+      {
+        label: "Общие отчёты",
+        help: "Команда сможет работать с единым результатом без пересылки файлов",
+      },
+      {
+        label: "Приоритетная поддержка",
+        help: "Вопросы команды будут обрабатываться раньше обращений с базовых тарифов",
+      },
+    ],
     action: "Обсудить доступ",
     href: "#contact",
   },
@@ -174,6 +232,41 @@ function ArrowIcon() {
         strokeWidth="1.8"
       />
     </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" width="20" height="20">
+      <circle
+        cx="10"
+        cy="10"
+        r="7.25"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <path
+        d="M10 8.7v4.1M10 6.3h.01"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function FeatureHelp({ label, help }: { label: string; help: string }) {
+  return (
+    <details className="feature-help">
+      <summary aria-label={`Подробнее: ${label}`}>
+        <InfoIcon />
+      </summary>
+      <span className="feature-tooltip" role="tooltip">
+        {help}
+      </span>
+    </details>
   );
 }
 
@@ -258,60 +351,17 @@ export default function Home() {
               </ul>
             </div>
 
-            <aside
-              className="diagnostic-card"
-              aria-label="Учебный пример диагностики магазина"
-            >
-              <div className="diagnostic-head">
-                <div>
-                  <p className="card-kicker">Диагностика магазина</p>
-                  <h2>Май 2026</h2>
-                </div>
-                <span className="demo-chip">Демо</span>
-              </div>
-              <div className="diagnostic-summary">
-                <div>
-                  <span>Выручка</span>
-                  <strong>416 860 ₽</strong>
-                </div>
-                <div>
-                  <span>Прибыль</span>
-                  <strong className="profit-value">+17 800 ₽</strong>
-                </div>
-                <div>
-                  <span>Маржа</span>
-                  <strong>4,3%</strong>
-                </div>
-              </div>
-              <div className="health-row">
-                <span>Здоровье ассортимента</span>
-                <strong>58 / 100</strong>
-              </div>
-              <div className="health-track" aria-hidden="true">
-                <span />
-              </div>
-              <div className="alert-card">
-                <span className="alert-icon" aria-hidden="true">
-                  !
-                </span>
-                <div>
-                  <strong>3 товара требуют внимания</strong>
-                  <p>Они забрали 18 350 ₽ прибыли за период</p>
-                </div>
-              </div>
-              <div className="mini-chart" aria-hidden="true">
-                <span style={{ height: "42%" }} />
-                <span style={{ height: "64%" }} />
-                <span className="negative" style={{ height: "30%" }} />
-                <span style={{ height: "76%" }} />
-                <span style={{ height: "54%" }} />
-                <span className="negative" style={{ height: "38%" }} />
-                <span style={{ height: "88%" }} />
-              </div>
-              <p className="demo-disclaimer">
-                Учебные данные — не результат реального магазина
-              </p>
-            </aside>
+            <figure className="diagnostic-visual">
+              <Image
+                className="diagnostic-visual-image"
+                src="/images/profit-diagnostic-card.png"
+                alt="Учебная диагностика магазина: выручка 416 860 ₽, прибыль 17 800 ₽, маржа 4,3%"
+                width={1128}
+                height={1394}
+                sizes="(max-width: 850px) min(540px, 100vw - 48px), 480px"
+                priority
+              />
+            </figure>
           </div>
         </section>
 
@@ -342,15 +392,17 @@ export default function Home() {
               {audiences.map((item) => (
                 <article className="info-card" key={item.marker}>
                   <span className="card-number">{item.marker}</span>
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
+                  <div className="info-card-copy">
+                    <h3>{item.title}</h3>
+                    <p>{item.text}</p>
+                  </div>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="section pain-section">
+        <section className="section pain-section" id="pain">
           <div className="pain-grid container">
             <div className="pain-copy">
               <p className="eyebrow eyebrow-dark">Что болит</p>
@@ -372,23 +424,46 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="formula-card">
-              <span className="formula-label">Формула диагноза</span>
-              <p>
-                <strong>Выручка</strong>
-                <span>−</span>комиссия<span>−</span>логистика<span>−</span>
-                хранение
-              </p>
-              <p>
-                <span>−</span>возвраты<span>−</span>реклама<span>−</span>
-                себестоимость
-              </p>
-              <div className="formula-result">
-                <span>=</span>
-                <div>
-                  <small>Реальная прибыль</small>
-                  <strong>по каждому SKU</strong>
+            <div
+              className="formula-card"
+              aria-label="Формула: выручка минус все расходы равна прибыли по каждому SKU"
+            >
+              <div className="formula-heading">
+                <span className="formula-label">Формула диагноза</span>
+                <span className="formula-symbol" aria-hidden="true">
+                  ∑
+                </span>
+              </div>
+              <div className="formula-equation">
+                <div className="formula-operand formula-revenue">
+                  <small>Получили</small>
+                  <strong>Выручка</strong>
                 </div>
+                <span className="formula-operator" aria-hidden="true">
+                  −
+                </span>
+                <div className="formula-operand formula-expenses">
+                  <small>Вычитаем</small>
+                  <strong>Все расходы</strong>
+                </div>
+                <span
+                  className="formula-operator formula-equals"
+                  aria-hidden="true"
+                >
+                  =
+                </span>
+                <div className="formula-operand formula-profit">
+                  <small>Получаем</small>
+                  <strong>Прибыль по SKU</strong>
+                </div>
+              </div>
+              <div className="formula-breakdown" aria-label="Состав расходов">
+                <span>Комиссия</span>
+                <span>Логистика</span>
+                <span>Хранение</span>
+                <span>Возвраты</span>
+                <span>Реклама</span>
+                <span>Себестоимость</span>
               </div>
               <p className="formula-note">
                 Если данных не хватает, расчёт будет честно помечен как оценка.
@@ -396,6 +471,32 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <aside
+          className="doctor-tour container"
+          aria-label="Profit Doctor объясняет"
+        >
+          <ProfitDoctorMascot className="doctor-tour-mascot" />
+          <div className="doctor-tour-copy">
+            <span>Profit Doctor объясняет</span>
+            <h2>Проведу от симптома к решению</h2>
+            <p>
+              Сначала найду убыточные SKU, затем покажу, какие расходы тянут их
+              вниз, и подскажу, что проверить в первую очередь.
+            </p>
+          </div>
+          <ol className="doctor-tour-route">
+            <li>
+              <span>01</span> Найти минус
+            </li>
+            <li>
+              <span>02</span> Объяснить причину
+            </li>
+            <li>
+              <span>03</span> Выбрать действие
+            </li>
+          </ol>
+        </aside>
 
         <section className="section how-section" id="how">
           <div className="container">
@@ -509,7 +610,9 @@ export default function Home() {
             <div className="pricing-grid">
               {tariffs.map((tariff) => (
                 <article
-                  className={`price-card${tariff.featured ? "price-featured" : ""}`}
+                  className={
+                    tariff.featured ? "price-card price-featured" : "price-card"
+                  }
                   key={tariff.name}
                 >
                   {tariff.featured && (
@@ -521,11 +624,18 @@ export default function Home() {
                     <span>{tariff.period}</span>
                   </p>
                   <p className="price-description">{tariff.description}</p>
+                  <p className="price-inherits">
+                    {tariff.inherits ?? "В тариф входит"}:
+                  </p>
                   <ul>
                     {tariff.features.map((feature) => (
-                      <li key={feature}>
+                      <li key={feature.label}>
                         <CheckIcon />
-                        {feature}
+                        <span>{feature.label}</span>
+                        <FeatureHelp
+                          label={feature.label}
+                          help={feature.help}
+                        />
                       </li>
                     ))}
                   </ul>
