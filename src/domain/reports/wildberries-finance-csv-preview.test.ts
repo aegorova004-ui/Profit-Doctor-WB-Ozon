@@ -113,6 +113,22 @@ describe("Wildberries finance CSV preview parser", () => {
     ]);
   });
 
+  it("parses the bundled synthetic WB finance CSV demo", () => {
+    const csv = readFileSync(
+      new URL(
+        "../../../public/demo/wb-finance-api-preview.csv",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    const report = parseWildberriesFinanceCsvText(csv);
+
+    expect(report.sourceRowCount).toBe(3);
+    expect(report.rows).toHaveLength(2);
+    expect(report.formatVersion).toBe(WB_FINANCE_CSV_PREVIEW_FORMAT_VERSION);
+  });
+
   it("rejects a service-only public WB finance CSV instead of spreading it over SKU", () => {
     expect(() =>
       parseWildberriesFinanceCsvRows([

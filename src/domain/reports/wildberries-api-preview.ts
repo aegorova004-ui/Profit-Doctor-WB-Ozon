@@ -50,6 +50,12 @@ type Aggregate = {
   payoutKopecks: bigint;
 };
 
+function decodeNumericHtmlEntities(value: string): string {
+  return value.replace(/&#(\d+);/g, (_, code: string) =>
+    String.fromCodePoint(Number(code)),
+  );
+}
+
 export class ReportParseError extends Error {
   readonly code: string;
   readonly sourceRowNumber?: number;
@@ -71,7 +77,7 @@ function cellToString(cell: RawCell | undefined): string {
     return cell.toISOString();
   }
 
-  return String(cell).trim();
+  return decodeNumericHtmlEntities(String(cell)).trim();
 }
 
 function normalizeHeader(cell: RawCell | undefined): string {

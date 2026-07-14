@@ -225,10 +225,58 @@ describe("ReportUpload", () => {
     render(<ReportUpload />);
 
     await user.click(
-      screen.getByRole("button", { name: "Открыть демо-отчёт" }),
+      screen.getByRole("button", { name: "Открыть демо XLSX WB" }),
     );
 
-    expect(fetchMock).toHaveBeenCalledWith("/demo/wb-demo-report.xlsx", {
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/demo/wb-financial-report-preview.xlsx",
+      {
+        cache: "no-store",
+      },
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "Отчёт WB прочитан и сверен",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("profit-doctor-demo-wb-financial.xlsx"),
+    ).toBeTruthy();
+    expect(screen.getByTestId("analysis-summary")).toBeTruthy();
+  });
+
+  it("shows the renamed WB XLSX demo template link", () => {
+    render(<ReportUpload />);
+
+    expect(
+      screen
+        .getByRole("link", { name: "WB XLSX — рабочий финансовый отчёт" })
+        .getAttribute("href"),
+    ).toBe("/demo/wb-financial-report-preview.xlsx");
+  });
+
+  it("opens the bundled demo CSV report without a manual file upload", async () => {
+    const user = userEvent.setup();
+    const csv = await readFile(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../tests/fixtures/reports/wb-finance-api-public-like.csv",
+      ),
+      "utf8",
+    );
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      text: async () => csv,
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<ReportUpload />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Открыть демо CSV WB" }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith("/demo/wb-finance-api-preview.csv", {
       cache: "no-store",
     });
     expect(
@@ -236,8 +284,38 @@ describe("ReportUpload", () => {
         name: "Отчёт WB прочитан и сверен",
       }),
     ).toBeTruthy();
-    expect(screen.getByText("profit-doctor-demo-wb.xlsx")).toBeTruthy();
-    expect(screen.getByTestId("analysis-summary")).toBeTruthy();
+    expect(screen.getByText("profit-doctor-demo-wb-finance.csv")).toBeTruthy();
+    expect(screen.getByText("3 операций")).toBeTruthy();
+    expect(screen.getByText("2 SKU")).toBeTruthy();
+  });
+
+  it("shows direct links to all synthetic demo templates", () => {
+    render(<ReportUpload />);
+
+    expect(
+      screen
+        .getByRole("link", { name: "WB XLSX — рабочий финансовый отчёт" })
+        .getAttribute("href"),
+    ).toBe("/demo/wb-financial-report-preview.xlsx");
+    expect(
+      screen
+        .getByRole("link", { name: "WB CSV — рабочий API-like finance" })
+        .getAttribute("href"),
+    ).toBe("/demo/wb-finance-api-preview.csv");
+    expect(
+      screen
+        .getByRole("link", {
+          name: "WB XLSX — товарный каталог для проверки ошибки",
+        })
+        .getAttribute("href"),
+    ).toBe("/demo/wb-product-catalog-not-finance.xlsx");
+    expect(
+      screen
+        .getByRole("link", {
+          name: "Ozon CSV — шаблон для следующего адаптера",
+        })
+        .getAttribute("href"),
+    ).toBe("/demo/ozon-finance-preview.csv");
   });
 
   it("analyzes a WB finance CSV preview report", async () => {

@@ -694,7 +694,7 @@ export function ReportUpload() {
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch("/demo/wb-demo-report.xlsx", {
+      const response = await fetch("/demo/wb-financial-report-preview.xlsx", {
         cache: "no-store",
       });
 
@@ -705,7 +705,7 @@ export function ReportUpload() {
       const buffer = await response.arrayBuffer();
       const demoFile = new File(
         [new Uint8Array(buffer)],
-        "profit-doctor-demo-wb.xlsx",
+        "profit-doctor-demo-wb-financial.xlsx",
         {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         },
@@ -721,6 +721,48 @@ export function ReportUpload() {
       if (analysisRunRef.current === runId) {
         setError(
           "Не удалось открыть демо-отчёт. Попробуйте выбрать XLSX вручную.",
+        );
+      }
+    } finally {
+      if (analysisRunRef.current === runId) {
+        setIsAnalyzing(false);
+      }
+    }
+  }
+
+  async function handleLoadDemoCsvReport() {
+    const runId = ++analysisRunRef.current;
+
+    setFile(null);
+    setFormat(null);
+    resetAnalysis();
+    setError("");
+    setIsAnalyzing(true);
+
+    try {
+      const response = await fetch("/demo/wb-finance-api-preview.csv", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("demo csv report is unavailable");
+      }
+
+      const text = await response.text();
+      const demoFile = new File([text], "profit-doctor-demo-wb-finance.csv", {
+        type: "text/csv",
+      });
+      const parsed = await parseWildberriesFinanceCsvFile(demoFile);
+
+      if (analysisRunRef.current === runId) {
+        setFile(demoFile);
+        setFormat("CSV");
+        setReport(parsed);
+      }
+    } catch {
+      if (analysisRunRef.current === runId) {
+        setError(
+          "Не удалось открыть демо CSV. Попробуйте скачать шаблон и выбрать его вручную.",
         );
       }
     } finally {
@@ -885,9 +927,48 @@ export function ReportUpload() {
           disabled={isAnalyzing}
           onClick={handleLoadDemoReport}
         >
-          Открыть демо-отчёт
+          Открыть демо XLSX WB
+        </button>
+        <button
+          className="button upload-demo"
+          type="button"
+          disabled={isAnalyzing}
+          onClick={handleLoadDemoCsvReport}
+        >
+          Открыть демо CSV WB
         </button>
       </div>
+      <section
+        className="demo-templates"
+        aria-labelledby="demo-templates-title"
+      >
+        <div>
+          <h2 id="demo-templates-title">Шаблоны для проверки</h2>
+          <p>Все файлы синтетические. Можно скачать и загрузить вручную.</p>
+        </div>
+        <ul>
+          <li>
+            <a href="/demo/wb-financial-report-preview.xlsx" download>
+              WB XLSX — рабочий финансовый отчёт
+            </a>
+          </li>
+          <li>
+            <a href="/demo/wb-finance-api-preview.csv" download>
+              WB CSV — рабочий API-like finance
+            </a>
+          </li>
+          <li>
+            <a href="/demo/wb-product-catalog-not-finance.xlsx" download>
+              WB XLSX — товарный каталог для проверки ошибки
+            </a>
+          </li>
+          <li>
+            <a href="/demo/ozon-finance-preview.csv" download>
+              Ozon CSV — шаблон для следующего адаптера
+            </a>
+          </li>
+        </ul>
+      </section>
       <p className="upload-privacy">
         <span aria-hidden="true">●</span>
         Анализ выполняется в этом браузере. Файл не отправляется и не хранится

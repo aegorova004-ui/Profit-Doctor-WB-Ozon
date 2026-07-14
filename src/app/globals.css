@@ -2197,7 +2197,7 @@ tbody tr:hover {
 
 .upload-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 10px;
   margin-top: 15px;
 }
@@ -2215,6 +2215,58 @@ tbody tr:hover {
 .upload-demo:hover:not(:disabled) {
   border-color: #9bc686;
   background: #e7f8dd;
+}
+
+.demo-templates {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid #d8e0d4;
+  border-radius: 16px;
+  background: #f7faf4;
+}
+
+.demo-templates h2 {
+  margin: 0;
+  color: #0d1915;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.demo-templates p {
+  margin: 5px 0 0;
+  color: #5d6c64;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.demo-templates ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.demo-templates a {
+  display: block;
+  min-height: 100%;
+  padding: 11px 12px;
+  color: #244f31;
+  border: 1px solid #cfe0c7;
+  border-radius: 11px;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.demo-templates a:hover {
+  border-color: #9bc686;
+  background: #edf9e7;
 }
 
 .upload-privacy {
@@ -3528,6 +3580,10 @@ tbody tr:hover {
   }
 
   .upload-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-templates ul {
     grid-template-columns: 1fr;
   }
 

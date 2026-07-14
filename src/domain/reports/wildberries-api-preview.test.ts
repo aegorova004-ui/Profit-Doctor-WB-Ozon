@@ -189,6 +189,27 @@ describe("Wildberries API preview parser", () => {
     );
   });
 
+  it("rejects the bundled synthetic WB product catalog demo", async () => {
+    const buffer = await readFile(
+      new URL(
+        "../../../public/demo/wb-product-catalog-not-finance.xlsx",
+        import.meta.url,
+      ),
+    );
+    const input = buffer.buffer.slice(
+      buffer.byteOffset,
+      buffer.byteOffset + buffer.byteLength,
+    );
+
+    await expect(
+      parseWildberriesApiPreviewWorkbook(input),
+    ).rejects.toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "WB_PRODUCT_CATALOG_UPLOADED",
+      }),
+    );
+  });
+
   it("rejects an unsupported currency with a public row number", () => {
     expect(() =>
       parseWildberriesApiRows([HEADERS, makeRow({ currency_name: "USD" })]),
