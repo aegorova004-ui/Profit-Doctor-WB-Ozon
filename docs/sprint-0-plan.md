@@ -41,7 +41,7 @@
 - [x] Созданы `AGENTS.md`, `README.md`, `PROJECT_STATE.md`, `ROADMAP.md`, `CHANGELOG.md` и документы в `docs/`.
 - [x] Добавлены PR/Issue templates и workflow для CI, недельного спринта и будничного отчёта.
 - [x] CI успешно проходит в GitHub; scheduled workflows имеют разрешение `issues: write`.
-- [ ] Ручной повторный запуск scheduled workflow не создаёт дубль за ту же московскую дату.
+- [x] Ручной повторный запуск scheduled workflow не создаёт дубль за ту же московскую дату.
 - [x] Первый setup оформлен в отдельной ветке `codex/sprint-0-foundation`; локальный коммит создан после финального self-review.
 
 ## Проверка спринта
@@ -57,7 +57,7 @@ npm test
 npm run build
 ```
 
-Дополнительно вручную: открыть landing и upload page на desktop/mobile, проверить отсутствие чувствительных данных в логах, вручную запустить оба scheduled workflow и повторить запуск для проверки дедупликации.
+Дополнительно вручную: открыть landing и upload page на desktop/mobile, проверить отсутствие чувствительных данных в логах. Оба scheduled workflow вручную запущены повторно 14 июля 2026 года; дубли Issues не созданы.
 
 ## Риски и границы
 
