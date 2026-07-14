@@ -32,6 +32,26 @@ npm run dev
 
 Если PostgreSQL пока недоступна, `db:generate`, `db:validate`, тесты и сборка работают с корректной тестовой `DATABASE_URL`, но миграция не применяется до подключения сервера.
 
+### Локальная PostgreSQL без Docker
+
+На рабочей машине можно использовать portable PostgreSQL 16, установленную в пользовательскую папку:
+
+```powershell
+$env:DATABASE_URL = "postgresql://postgres@127.0.0.1:55432/profit_doctor?schema=public"
+& "$env:LOCALAPPDATA\ProfitDoctor\Postgres16\pgsql\bin\pg_ctl.exe" `
+  -D "$env:LOCALAPPDATA\ProfitDoctor\Postgres16\data" `
+  -l "$env:LOCALAPPDATA\ProfitDoctor\Postgres16\postgres.log" `
+  -o "-p 55432 -c listen_addresses=127.0.0.1" start
+npm run db:migrate
+```
+
+Остановить локальную БД:
+
+```powershell
+& "$env:LOCALAPPDATA\ProfitDoctor\Postgres16\pgsql\bin\pg_ctl.exe" `
+  -D "$env:LOCALAPPDATA\ProfitDoctor\Postgres16\data" stop
+```
+
 Приложение откроется по адресу [http://localhost:3000](http://localhost:3000).
 
 На странице `/upload` первый preview-адаптер принимает XLSX с API-подобными полями финансового отчёта Wildberries. Он читает файл локально, переводит денежные значения в integer-копейки, объединяет продажи и возвраты по SKU и сверяет результат с `for_pay`. Для быстрой проверки без ручного выбора файла доступна кнопка «Открыть демо-отчёт» с синтетическим XLSX. После импорта можно ввести себестоимость единицы, получить пересчёт до рекламы, раскрыть источники каждой суммы и увидеть убыточные SKU. Диагноз ранжирует проблемные товары, считает разрыв до безубыточности и показывает предельную себестоимость по известным расходам. Текущий результат можно локально скачать в CSV или XLSX вместе с версией формулы, источниками и рекомендациями. Это ещё не поддержка фактической выгрузки из кабинета: она будет объявлена только после проверки актуального анонимизированного образца.
