@@ -22,6 +22,7 @@ vi.mock("write-excel-file/browser", () => ({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.clearAllMocks();
 });
 
@@ -201,6 +202,42 @@ describe("ReportUpload", () => {
         .getAttribute("href"),
     ).toBe("#analysis-title");
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("opens the bundled demo report without a manual file upload", async () => {
+    const user = userEvent.setup();
+    const buffer = await readFile(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../tests/fixtures/reports/wb-financial-report-api-synthetic.xlsx",
+      ),
+    );
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      arrayBuffer: async () =>
+        buffer.buffer.slice(
+          buffer.byteOffset,
+          buffer.byteOffset + buffer.byteLength,
+        ),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<ReportUpload />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Открыть демо-отчёт" }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith("/demo/wb-demo-report.xlsx", {
+      cache: "no-store",
+    });
+    expect(
+      await screen.findByRole("heading", {
+        name: "Отчёт WB прочитан и сверен",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText("profit-doctor-demo-wb.xlsx")).toBeTruthy();
+    expect(screen.getByTestId("analysis-summary")).toBeTruthy();
   });
 
   it("keeps the previous calculation when a cost is invalid", async () => {

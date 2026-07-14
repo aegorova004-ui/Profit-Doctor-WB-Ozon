@@ -680,6 +680,52 @@ export function ReportUpload() {
     }
   }
 
+  async function handleLoadDemoReport() {
+    const runId = ++analysisRunRef.current;
+
+    setFile(null);
+    setFormat(null);
+    resetAnalysis();
+    setError("");
+    setIsAnalyzing(true);
+
+    try {
+      const response = await fetch("/demo/wb-demo-report.xlsx", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("demo report is unavailable");
+      }
+
+      const buffer = await response.arrayBuffer();
+      const demoFile = new File(
+        [new Uint8Array(buffer)],
+        "profit-doctor-demo-wb.xlsx",
+        {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+      );
+      const parsed = await parseWildberriesApiPreviewWorkbook(demoFile);
+
+      if (analysisRunRef.current === runId) {
+        setFile(demoFile);
+        setFormat("XLSX");
+        setReport(parsed);
+      }
+    } catch {
+      if (analysisRunRef.current === runId) {
+        setError(
+          "Не удалось открыть демо-отчёт. Попробуйте выбрать XLSX вручную.",
+        );
+      }
+    } finally {
+      if (analysisRunRef.current === runId) {
+        setIsAnalyzing(false);
+      }
+    }
+  }
+
   function handleCostChange(sku: string, value: string) {
     setCostValues((current) => ({ ...current, [sku]: value }));
     setCostFormError("");
@@ -819,14 +865,24 @@ export function ReportUpload() {
         )}
       </div>
 
-      <button
-        className="button button-primary upload-submit"
-        type="button"
-        disabled={!file || format !== "XLSX" || isAnalyzing}
-        onClick={handleAnalyze}
-      >
-        {isAnalyzing ? "Сверяем операции…" : "Проверить отчёт локально"}
-      </button>
+      <div className="upload-actions">
+        <button
+          className="button button-primary upload-submit"
+          type="button"
+          disabled={!file || format !== "XLSX" || isAnalyzing}
+          onClick={handleAnalyze}
+        >
+          {isAnalyzing ? "Сверяем операции…" : "Проверить отчёт локально"}
+        </button>
+        <button
+          className="button upload-demo"
+          type="button"
+          disabled={isAnalyzing}
+          onClick={handleLoadDemoReport}
+        >
+          Открыть демо-отчёт
+        </button>
+      </div>
       <p className="upload-privacy">
         <span aria-hidden="true">●</span>
         Анализ выполняется в этом браузере. Файл не отправляется и не хранится

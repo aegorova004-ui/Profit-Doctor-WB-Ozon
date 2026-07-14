@@ -2195,9 +2195,26 @@ tbody tr:hover {
   background: #deeed6;
 }
 
+.upload-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  margin-top: 15px;
+}
+
 .upload-submit {
   width: 100%;
-  margin-top: 15px;
+}
+
+.upload-demo {
+  color: #315f3d;
+  border-color: #cfe0c7;
+  background: #f1faec;
+}
+
+.upload-demo:hover:not(:disabled) {
+  border-color: #9bc686;
+  background: #e7f8dd;
 }
 
 .upload-privacy {
@@ -3508,6 +3525,10 @@ tbody tr:hover {
   .selected-file button {
     grid-column: 1 / -1;
     justify-self: stretch;
+  }
+
+  .upload-actions {
+    grid-template-columns: 1fr;
   }
 
   .upload-help ol {
