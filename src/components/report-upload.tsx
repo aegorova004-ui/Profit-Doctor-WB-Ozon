@@ -12,6 +12,7 @@ import {
   type SkuDiagnosis,
 } from "@/domain/reports/diagnose-report";
 import type { ParsedReport } from "@/domain/reports/parser";
+import { parseWildberriesFinanceCsvFile } from "@/domain/reports/wildberries-finance-csv-preview";
 import {
   parseWildberriesApiPreviewWorkbook,
   ReportParseError,
@@ -650,7 +651,7 @@ export function ReportUpload() {
   }
 
   async function handleAnalyze() {
-    if (!file || format !== "XLSX") {
+    if (!file || !format) {
       return;
     }
 
@@ -661,7 +662,10 @@ export function ReportUpload() {
     const runId = ++analysisRunRef.current;
 
     try {
-      const parsed = await parseWildberriesApiPreviewWorkbook(file);
+      const parsed =
+        format === "XLSX"
+          ? await parseWildberriesApiPreviewWorkbook(file)
+          : await parseWildberriesFinanceCsvFile(file);
       if (analysisRunRef.current === runId) {
         setReport(parsed);
       }
@@ -817,7 +821,7 @@ export function ReportUpload() {
         <strong>
           {file ? "Выбрать другой отчёт" : "Выбрать отчёт с устройства"}
         </strong>
-        <span>WB XLSX, максимум 10 МБ</span>
+        <span>WB XLSX или CSV, максимум 10 МБ</span>
         <input
           ref={inputRef}
           id="report-file"
@@ -830,8 +834,9 @@ export function ReportUpload() {
       </label>
 
       <p className="visually-hidden" id="upload-limit">
-        Поддерживаются файлы CSV и XLSX размером до 10 мегабайт. Первый
-        анализатор работает с XLSX финансового отчёта Wildberries.
+        Поддерживаются файлы CSV и XLSX размером до 10 мегабайт. Анализатор
+        работает с XLSX финансового отчёта Wildberries и preview CSV
+        API-подобного отчёта WB.
       </p>
       <div id="upload-status" aria-live="polite">
         {error && (
@@ -859,8 +864,8 @@ export function ReportUpload() {
         )}
         {file && format === "CSV" && (
           <p className="upload-message upload-format-note">
-            Первый адаптер разбирает XLSX с полями финансового отчёта WB. CSV
-            можно выбрать, но его анализ появится после фиксации формата.
+            CSV будет разобран preview-адаптером WB finance. Если в файле есть
+            только сервисные строки без SKU, расчёт остановится с объяснением.
           </p>
         )}
       </div>
@@ -869,7 +874,7 @@ export function ReportUpload() {
         <button
           className="button button-primary upload-submit"
           type="button"
-          disabled={!file || format !== "XLSX" || isAnalyzing}
+          disabled={!file || isAnalyzing}
           onClick={handleAnalyze}
         >
           {isAnalyzing ? "Сверяем операции…" : "Проверить отчёт локально"}

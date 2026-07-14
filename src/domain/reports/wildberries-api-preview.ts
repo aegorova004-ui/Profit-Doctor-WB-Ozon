@@ -92,6 +92,24 @@ function findHeaderRow(rows: readonly RawRow[]): number {
     }
   }
 
+  const firstRowValues = new Set(rows[0]?.map(normalizeHeader) ?? []);
+  const catalogMarkerCount = [
+    "категория",
+    "название",
+    "артикул",
+    "url",
+    "цена",
+    "цена со скидкой",
+    "производитель",
+  ].filter((header) => firstRowValues.has(header)).length;
+
+  if (catalogMarkerCount >= 5) {
+    throw new ReportParseError(
+      "WB_PRODUCT_CATALOG_UPLOADED",
+      "Похоже, выбран товарный каталог Wildberries. Для расчёта прибыли нужен финансовый отчёт с выплатами и удержаниями",
+    );
+  }
+
   throw new ReportParseError(
     "WB_FORMAT_NOT_RECOGNIZED",
     "Не удалось распознать финансовый отчёт Wildberries: строка заголовков не найдена",

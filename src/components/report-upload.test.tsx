@@ -240,6 +240,59 @@ describe("ReportUpload", () => {
     expect(screen.getByTestId("analysis-summary")).toBeTruthy();
   });
 
+  it("analyzes a WB finance CSV preview report", async () => {
+    const user = userEvent.setup();
+    const csv = await readFile(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../tests/fixtures/reports/wb-finance-api-public-like.csv",
+      ),
+      "utf8",
+    );
+    const file = new File([csv], "wb-finance.csv", {
+      type: "text/csv",
+    });
+
+    render(<ReportUpload />);
+
+    await user.upload(
+      screen.getByLabelText("Выбрать отчёт с устройства", { exact: false }),
+      file,
+    );
+
+    expect(
+      screen.getByText(
+        "CSV будет разобран preview-адаптером WB finance. Если в файле есть только сервисные строки без SKU, расчёт остановится с объяснением.",
+      ),
+    ).toBeTruthy();
+    const analyzeButton = screen.getByRole("button", {
+      name: "Проверить отчёт локально",
+    });
+    expect((analyzeButton as HTMLButtonElement).disabled).toBe(false);
+
+    await user.click(analyzeButton);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Отчёт WB прочитан и сверен",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText("3 операций")).toBeTruthy();
+    expect(screen.getByText("2 SKU")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "В отчёте есть сервисные строки WB без SKU: 1. Preview-адаптер не распределяет их по товарам.",
+      ),
+    ).toBeTruthy();
+    const summary = within(screen.getByTestId("analysis-summary"));
+    expect(summary.getByText("Выручка").nextElementSibling?.textContent).toBe(
+      "2 925 ₽",
+    );
+    expect(
+      summary.getByText("Удержания WB").nextElementSibling?.textContent,
+    ).toBe("1 834 ₽");
+  });
+
   it("keeps the previous calculation when a cost is invalid", async () => {
     const user = userEvent.setup();
     const buffer = await readFile(
