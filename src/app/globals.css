@@ -3181,8 +3181,8 @@ tbody tr:hover {
 }
 
 .source-breakdown {
-  margin-top: 9px;
-  font-size: 10px;
+  margin-top: 12px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -3194,24 +3194,24 @@ tbody tr:hover {
 }
 
 .source-breakdown[open] summary {
-  margin-bottom: 9px;
+  margin-bottom: 12px;
 }
 
 .source-breakdown dl {
-  min-width: 285px;
+  min-width: min(420px, 76vw);
   margin: 0;
-  padding: 10px;
+  padding: 14px;
   color: #26382f;
   border: 1px solid #d8e2d5;
-  border-radius: 9px;
+  border-radius: 12px;
   background: #f7faf5;
 }
 
 .source-breakdown dl > div {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  padding: 5px 0;
+  gap: 18px;
+  padding: 9px 0;
   border-bottom: 1px solid #e5eae2;
 }
 
@@ -3230,10 +3230,10 @@ tbody tr:hover {
 
 .source-breakdown dd small {
   display: block;
-  max-width: 145px;
-  margin-top: 2px;
+  max-width: 210px;
+  margin-top: 4px;
   color: #7a867f;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 500;
   white-space: normal;
 }
@@ -3245,15 +3245,15 @@ tbody tr:hover {
 }
 
 .upload-help h2 {
-  margin: 0 0 17px;
-  font-size: 15px;
+  margin: 0 0 20px;
+  font-size: 22px;
   letter-spacing: -0.02em;
 }
 
 .upload-help ol {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 22px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -3262,36 +3262,36 @@ tbody tr:hover {
 .upload-help li {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
+  gap: 12px;
 }
 
 .upload-help li > span {
-  width: 23px;
-  height: 23px;
+  width: 32px;
+  height: 32px;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
   color: #477253;
-  border-radius: 7px;
+  border-radius: 10px;
   background: #e6eee2;
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 850;
 }
 
 .upload-help li div {
   display: grid;
-  gap: 4px;
+  gap: 7px;
 }
 
 .upload-help strong {
-  font-size: 10px;
+  font-size: 15px;
 }
 
 .upload-help p {
   margin: 0;
   color: #78847e;
-  font-size: 9px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 @media (max-width: 1130px) {

@@ -22,19 +22,16 @@ import {
 import { detectReportMarketplace } from "@/domain/reports/detect-marketplace";
 import {
   parseOzonFinanceCsvText,
-  OZON_FINANCE_CSV_PREVIEW_FORMAT_VERSION,
   OZON_FINANCE_CSV_REQUIRED_HEADERS,
 } from "@/domain/reports/ozon-finance-csv-preview";
 import type { ParsedReport } from "@/domain/reports/parser";
 import {
   parseWildberriesFinanceCsvText,
-  WB_FINANCE_CSV_PREVIEW_FORMAT_VERSION,
   WB_FINANCE_CSV_REQUIRED_HEADERS,
 } from "@/domain/reports/wildberries-finance-csv-preview";
 import {
   parseWildberriesApiPreviewWorkbook,
   ReportParseError,
-  WB_API_PREVIEW_FORMAT_VERSION,
   WB_API_PREVIEW_REQUIRED_HEADERS,
 } from "@/domain/reports/wildberries-api-preview";
 import { validateReportFile } from "@/domain/reports/validate-upload";
@@ -62,22 +59,6 @@ function formatKopecks(value: number): string {
 
 function marketplaceShortName(marketplace: ParsedReport["marketplace"]) {
   return marketplace === "wildberries" ? "WB" : "Ozon";
-}
-
-function adapterDisplayName(report: ParsedReport): string {
-  if (report.formatVersion === WB_API_PREVIEW_FORMAT_VERSION) {
-    return "WB XLSX API preview";
-  }
-
-  if (report.formatVersion === WB_FINANCE_CSV_PREVIEW_FORMAT_VERSION) {
-    return "WB CSV finance preview";
-  }
-
-  if (report.formatVersion === OZON_FINANCE_CSV_PREVIEW_FORMAT_VERSION) {
-    return "Ozon CSV finance preview";
-  }
-
-  return "Preview-адаптер";
 }
 
 type UploadDiagnostic = {
@@ -271,13 +252,7 @@ type CostEditorProps = {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
-function ImportAdapterStatus({
-  isAnalyzing,
-  report,
-}: {
-  isAnalyzing: boolean;
-  report: ParsedReport | null;
-}) {
+function ImportAdapterStatus({ isAnalyzing }: { isAnalyzing: boolean }) {
   if (isAnalyzing) {
     return (
       <section
@@ -291,27 +266,7 @@ function ImportAdapterStatus({
     );
   }
 
-  if (!report) {
-    return null;
-  }
-
-  const marketplaceName = marketplaceShortName(report.marketplace);
-
-  return (
-    <section
-      className="import-adapter-status"
-      aria-label="Распознанный адаптер отчёта"
-      data-testid="import-adapter-status"
-    >
-      <span>Распознан адаптер</span>
-      <strong>
-        {marketplaceName} · {adapterDisplayName(report)}
-      </strong>
-      <p>
-        Версия: <code>{report.formatVersion}</code>
-      </p>
-    </section>
-  );
+  return null;
 }
 
 function UploadDiagnosticCard({
@@ -1375,7 +1330,7 @@ export function ReportUpload() {
         на сервере
       </p>
 
-      <ImportAdapterStatus isAnalyzing={isAnalyzing} report={report} />
+      <ImportAdapterStatus isAnalyzing={isAnalyzing} />
 
       {report && (
         <CostEditor
