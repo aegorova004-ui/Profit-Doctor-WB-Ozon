@@ -1,5 +1,6 @@
 "use client";
 
+import { readSheet } from "read-excel-file/universal";
 import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 import {
   analyzeParsedReport,
@@ -11,12 +12,30 @@ import {
   type ExpenseDriver,
   type SkuDiagnosis,
 } from "@/domain/reports/diagnose-report";
+import { parseCsvRows } from "@/domain/reports/csv";
+import {
+  OZON_CSV_DEMO_REPORT,
+  WB_CSV_DEMO_REPORT,
+  WB_XLSX_DEMO_REPORT,
+  WORKING_DEMO_TEMPLATE_LINKS,
+} from "@/domain/reports/demo-fixtures";
+import { detectReportMarketplace } from "@/domain/reports/detect-marketplace";
+import {
+  parseOzonFinanceCsvText,
+  OZON_FINANCE_CSV_REQUIRED_HEADERS,
+} from "@/domain/reports/ozon-finance-csv-preview";
 import type { ParsedReport } from "@/domain/reports/parser";
+import {
+  parseWildberriesFinanceCsvText,
+  WB_FINANCE_CSV_REQUIRED_HEADERS,
+} from "@/domain/reports/wildberries-finance-csv-preview";
 import {
   parseWildberriesApiPreviewWorkbook,
   ReportParseError,
+  WB_API_PREVIEW_REQUIRED_HEADERS,
 } from "@/domain/reports/wildberries-api-preview";
 import { validateReportFile } from "@/domain/reports/validate-upload";
+import { ReportExportActions } from "./report-export-actions";
 
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) {
@@ -38,6 +57,190 @@ function formatKopecks(value: number): string {
   return `${negative ? "−" : ""}${rubles}${kopecks === "00" ? "" : `,${kopecks}`} ₽`;
 }
 
+function marketplaceShortName(marketplace: ParsedReport["marketplace"]) {
+  return marketplace === "wildberries" ? "WB" : "Ozon";
+}
+
+type UploadDiagnostic = {
+  title: string;
+  summary: string;
+  foundColumns: string[];
+  missingColumns: string[];
+  templateLinks: readonly { href: string; label: string }[];
+};
+
+type RawSheetCell = string | number | boolean | Date | null;
+
+function normalizeDiagnosticHeader(value: string): string {
+  return value.trim().toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
+}
+
+function decodeNumericHtmlEntities(value: string): string {
+  return value.replace(/&#(\d+);/g, (_, code: string) =>
+    String.fromCodePoint(Number(code)),
+  );
+}
+
+function toDiagnosticCell(cell: RawSheetCell | undefined): string {
+  if (cell === null || cell === undefined) {
+    return "";
+  }
+
+  if (cell instanceof Date) {
+    return cell.toISOString();
+  }
+
+  return decodeNumericHtmlEntities(String(cell)).trim();
+}
+
+function chooseLikelyHeaderRow(
+  rows: readonly (readonly RawSheetCell[])[],
+): string[] {
+  const candidates = rows.slice(0, 20).map((row) => {
+    const cells = row.map(toDiagnosticCell).filter(Boolean);
+    const normalized = new Set(cells.map(normalizeDiagnosticHeader));
+    const markerScore = [
+      "nm_id",
+      "barcode",
+      "doc_type_name",
+      "supplier_oper_name",
+      "ppvz_for_pay",
+      "sku",
+      "offer_id",
+      "тип начисления",
+    ].filter((marker) => normalized.has(marker)).length;
+
+    return { cells, markerScore };
+  });
+
+  return (
+    candidates.sort(
+      (left, right) =>
+        right.markerScore - left.markerScore ||
+        right.cells.length - left.cells.length,
+    )[0]?.cells ?? []
+  );
+}
+
+function missingHeaders(
+  required: readonly string[],
+  foundColumns: readonly string[],
+): string[] {
+  const found = new Set(foundColumns.map(normalizeDiagnosticHeader));
+
+  return required.filter(
+    (header) => !found.has(normalizeDiagnosticHeader(header)),
+  );
+}
+
+function diagnosticTitle(cause: unknown): string {
+  if (!(cause instanceof ReportParseError)) {
+    return "Формат пока не поддерживается";
+  }
+
+  if (cause.code === "MISSING_COLUMNS") {
+    return "Не хватает колонок для расчёта";
+  }
+
+  if (cause.code === "WB_PRODUCT_CATALOG_UPLOADED") {
+    return "Это товарный каталог, не финансовый отчёт";
+  }
+
+  if (cause.code.includes("FORMAT_NOT_RECOGNIZED")) {
+    return "Формат пока не поддерживается";
+  }
+
+  return "Отчёт требует проверки";
+}
+
+function buildDiagnosticFromColumns(
+  format: "CSV" | "XLSX",
+  foundColumns: string[],
+  cause: unknown,
+): UploadDiagnostic {
+  const marketplace = detectReportMarketplace(foundColumns);
+  const required =
+    format === "XLSX"
+      ? WB_API_PREVIEW_REQUIRED_HEADERS
+      : marketplace === "ozon"
+        ? OZON_FINANCE_CSV_REQUIRED_HEADERS
+        : WB_FINANCE_CSV_REQUIRED_HEADERS;
+  const foundPreview = foundColumns.slice(0, 12);
+  const missing = missingHeaders(required, foundColumns);
+
+  return {
+    title: diagnosticTitle(cause),
+    summary:
+      marketplace === null
+        ? "Мы не нашли достаточно признаков поддерживаемого финансового отчёта WB или Ozon."
+        : `Файл похож на ${marketplaceShortName(marketplace)}, но preview-адаптеру не хватает данных для безопасного расчёта.`,
+    foundColumns: foundPreview,
+    missingColumns:
+      missing.length > 0
+        ? missing
+        : ["Поддерживаемая строка заголовков финансового отчёта"],
+    templateLinks: WORKING_DEMO_TEMPLATE_LINKS,
+  };
+}
+
+async function buildUploadDiagnostic(
+  file: File,
+  format: "CSV" | "XLSX",
+  cause: unknown,
+): Promise<UploadDiagnostic> {
+  try {
+    if (format === "CSV") {
+      const rows = parseCsvRows(await file.text());
+      return buildDiagnosticFromColumns(
+        format,
+        chooseLikelyHeaderRow(rows),
+        cause,
+      );
+    }
+
+    const rows = (await readSheet(file)) as RawSheetCell[][];
+    return buildDiagnosticFromColumns(
+      format,
+      chooseLikelyHeaderRow(rows),
+      cause,
+    );
+  } catch {
+    return {
+      title: diagnosticTitle(cause),
+      summary:
+        "Не удалось безопасно прочитать заголовки файла. Попробуйте сохранить отчёт заново или сравнить его с демо-шаблоном.",
+      foundColumns: [],
+      missingColumns: ["Поддерживаемая строка заголовков финансового отчёта"],
+      templateLinks: WORKING_DEMO_TEMPLATE_LINKS,
+    };
+  }
+}
+
+async function parseSupportedCsvPreviewFile(file: Blob): Promise<ParsedReport> {
+  const text = await file.text();
+  const rows = parseCsvRows(text);
+  const headers = rows[0] ?? [];
+  const marketplace = detectReportMarketplace(headers);
+
+  if (marketplace === "ozon") {
+    return parseOzonFinanceCsvText(text);
+  }
+
+  if (marketplace === "wildberries") {
+    return parseWildberriesFinanceCsvText(text);
+  }
+
+  try {
+    return parseWildberriesFinanceCsvText(text);
+  } catch (wildberriesError) {
+    try {
+      return parseOzonFinanceCsvText(text);
+    } catch {
+      throw wildberriesError;
+    }
+  }
+}
+
 type CostEditorProps = {
   report: ParsedReport;
   values: Readonly<Record<string, string>>;
@@ -48,6 +251,74 @@ type CostEditorProps = {
   onChange: (sku: string, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
+
+function ImportAdapterStatus({ isAnalyzing }: { isAnalyzing: boolean }) {
+  if (isAnalyzing) {
+    return (
+      <section
+        className="import-adapter-status import-adapter-status-pending"
+        aria-label="Статус определения адаптера отчёта"
+      >
+        <span>Определяем адаптер</span>
+        <strong>Проверяем заголовки и структуру файла</strong>
+        <p>Файл остаётся в браузере; на сервер ничего не отправляется.</p>
+      </section>
+    );
+  }
+
+  return null;
+}
+
+function UploadDiagnosticCard({
+  diagnostic,
+}: {
+  diagnostic: UploadDiagnostic;
+}) {
+  return (
+    <section
+      className="upload-diagnostic"
+      aria-labelledby="upload-diagnostic-title"
+    >
+      <div>
+        <p className="eyebrow eyebrow-dark">Диагностика формата</p>
+        <h2 id="upload-diagnostic-title">{diagnostic.title}</h2>
+        <p>{diagnostic.summary}</p>
+      </div>
+
+      <div className="upload-diagnostic-grid">
+        <div>
+          <strong>Нашли в файле</strong>
+          {diagnostic.foundColumns.length > 0 ? (
+            <ul>
+              {diagnostic.foundColumns.map((column) => (
+                <li key={column}>{column}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Заголовки не удалось прочитать безопасно.</p>
+          )}
+        </div>
+        <div>
+          <strong>Не хватает для preview</strong>
+          <ul>
+            {diagnostic.missingColumns.map((column) => (
+              <li key={column}>{column}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="upload-diagnostic-actions">
+        <span>Сравните файл с шаблоном:</span>
+        {diagnostic.templateLinks.map((link) => (
+          <a href={link.href} key={link.href} download>
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function CostEditor({
   report,
@@ -136,13 +407,21 @@ function CostEditor({
   );
 }
 
-function SourceBreakdown({ row }: { row: ReportAnalysis["rows"][number] }) {
+function SourceBreakdown({
+  row,
+  marketplaceName,
+}: {
+  row: ReportAnalysis["rows"][number];
+  marketplaceName: string;
+}) {
   const sourceRows = [
     ["Выручка", row.profit.revenueKopecks, "retail_amount"],
     [
-      "Комиссия WB",
+      `Комиссия ${marketplaceName}`,
       row.marketplaceCommissionKopecks,
-      "retail_amount − ppvz_for_pay",
+      marketplaceName === "WB"
+        ? "retail_amount − ppvz_for_pay"
+        : "Комиссия за продажу",
     ],
     ["Логистика", row.logisticsKopecks, "delivery_rub"],
     ["Хранение", row.storageKopecks, "storage_fee"],
@@ -214,11 +493,21 @@ function AnalysisStatus({ row }: { row: ReportAnalysis["rows"][number] }) {
   );
 }
 
-function MobileAnalysisCards({ analysis }: { analysis: ReportAnalysis }) {
+function MobileAnalysisCards({
+  analysis,
+  marketplaceName,
+}: {
+  analysis: ReportAnalysis;
+  marketplaceName: string;
+}) {
   return (
-    <div className="analysis-mobile-list">
+    <div className="analysis-mobile-list" data-testid="analysis-mobile-list">
       {analysis.rows.map((row) => (
-        <article className="analysis-mobile-card" key={row.sku}>
+        <article
+          className="analysis-mobile-card"
+          data-testid="analysis-mobile-card"
+          key={row.sku}
+        >
           <div className="analysis-mobile-heading">
             <div>
               <h3>{row.productName ?? row.sku}</h3>
@@ -236,7 +525,7 @@ function MobileAnalysisCards({ analysis }: { analysis: ReportAnalysis }) {
               <dd>{formatKopecks(row.profit.revenueKopecks)}</dd>
             </div>
             <div>
-              <dt>Удержания WB</dt>
+              <dt>Удержания {marketplaceName}</dt>
               <dd>{formatKopecks(row.profit.marketplaceExpensesKopecks)}</dd>
             </div>
             <div>
@@ -254,7 +543,7 @@ function MobileAnalysisCards({ analysis }: { analysis: ReportAnalysis }) {
               </dd>
             </div>
           </dl>
-          <SourceBreakdown row={row} />
+          <SourceBreakdown row={row} marketplaceName={marketplaceName} />
         </article>
       ))}
     </div>
@@ -455,20 +744,29 @@ function DiagnosisPanel({ analysis }: { analysis: ReportAnalysis }) {
   );
 }
 
-function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
+function AnalysisResult({
+  analysis,
+  sourceFileName,
+}: {
+  analysis: ReportAnalysis;
+  sourceFileName: string;
+}) {
+  const marketplaceName = marketplaceShortName(analysis.marketplace);
+
   return (
     <section className="analysis-result" aria-labelledby="analysis-title">
       <div className="analysis-heading">
         <div>
           <p className="eyebrow eyebrow-dark">Результат проверки</p>
-          <h2 id="analysis-title">Отчёт WB прочитан и сверен</h2>
+          <h2 id="analysis-title">Отчёт {marketplaceName} прочитан локально</h2>
         </div>
         <span className="analysis-badge">Локально</span>
       </div>
 
       <p className="analysis-notice">
-        Результат учитывает удержания WB и введённую себестоимость. Рекламы в
-        этом отчёте нет, поэтому положительная сумма — ещё не чистая прибыль.
+        Результат учитывает удержания {marketplaceName} и введённую
+        себестоимость. Рекламы в этом отчёте нет, поэтому положительная сумма —
+        ещё не чистая прибыль.
       </p>
 
       <dl className="analysis-summary" data-testid="analysis-summary">
@@ -477,7 +775,7 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
           <dd>{formatKopecks(analysis.totalRevenueKopecks)}</dd>
         </div>
         <div>
-          <dt>Удержания WB</dt>
+          <dt>Удержания {marketplaceName}</dt>
           <dd>{formatKopecks(analysis.totalKnownExpensesKopecks)}</dd>
         </div>
         <div>
@@ -520,17 +818,22 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
 
       <DiagnosisPanel analysis={analysis} />
 
+      <ReportExportActions
+        analysis={analysis}
+        sourceFileName={sourceFileName}
+      />
+
       <div className="analysis-table-wrap analysis-table-desktop">
         <table className="analysis-table">
           <caption className="visually-hidden">
-            Оценка результата по товарам Wildberries
+            Оценка результата по товарам {marketplaceName}
           </caption>
           <thead>
             <tr>
               <th scope="col">Товар</th>
               <th scope="col">Количество</th>
               <th scope="col">Выручка</th>
-              <th scope="col">Удержания WB</th>
+              <th scope="col">Удержания {marketplaceName}</th>
               <th scope="col">Себестоимость</th>
               <th scope="col">Результат</th>
             </tr>
@@ -541,7 +844,10 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
                 <th scope="row">
                   <strong>{row.productName ?? row.sku}</strong>
                   <span>{row.sku}</span>
-                  <SourceBreakdown row={row} />
+                  <SourceBreakdown
+                    row={row}
+                    marketplaceName={marketplaceName}
+                  />
                 </th>
                 <td>{row.quantity} шт.</td>
                 <td>{formatKopecks(row.profit.revenueKopecks)}</td>
@@ -564,7 +870,10 @@ function AnalysisResult({ analysis }: { analysis: ReportAnalysis }) {
           </tbody>
         </table>
       </div>
-      <MobileAnalysisCards analysis={analysis} />
+      <MobileAnalysisCards
+        analysis={analysis}
+        marketplaceName={marketplaceName}
+      />
     </section>
   );
 }
@@ -575,11 +884,13 @@ export function ReportUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [format, setFormat] = useState<"CSV" | "XLSX" | null>(null);
   const [error, setError] = useState("");
+  const [diagnostic, setDiagnostic] = useState<UploadDiagnostic | null>(null);
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [costValues, setCostValues] = useState<Record<string, string>>({});
   const [costErrors, setCostErrors] = useState<Record<string, string>>({});
   const [costFormError, setCostFormError] = useState("");
   const [calculationMessage, setCalculationMessage] = useState("");
+  const [demoMessage, setDemoMessage] = useState("");
   const [appliedUnitCosts, setAppliedUnitCosts] = useState<
     Record<string, number>
   >({});
@@ -591,11 +902,29 @@ export function ReportUpload() {
 
   function resetAnalysis() {
     setReport(null);
+    setDiagnostic(null);
     setCostValues({});
     setCostErrors({});
     setCostFormError("");
     setCalculationMessage("");
+    setDemoMessage("");
     setAppliedUnitCosts({});
+  }
+
+  function scrollToAnalysisSoon() {
+    const scroll = () => {
+      const analysisTitle = document.getElementById("analysis-title");
+      if (typeof analysisTitle?.scrollIntoView === "function") {
+        analysisTitle.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(scroll);
+      return;
+    }
+
+    scroll();
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -638,7 +967,7 @@ export function ReportUpload() {
   }
 
   async function handleAnalyze() {
-    if (!file || format !== "XLSX") {
+    if (!file || !format) {
       return;
     }
 
@@ -649,9 +978,14 @@ export function ReportUpload() {
     const runId = ++analysisRunRef.current;
 
     try {
-      const parsed = await parseWildberriesApiPreviewWorkbook(file);
+      const parsed =
+        format === "XLSX"
+          ? await parseWildberriesApiPreviewWorkbook(file)
+          : await parseSupportedCsvPreviewFile(file);
       if (analysisRunRef.current === runId) {
         setReport(parsed);
+        setDiagnostic(null);
+        scrollToAnalysisSoon();
       }
     } catch (cause) {
       if (analysisRunRef.current === runId) {
@@ -659,6 +993,146 @@ export function ReportUpload() {
           cause instanceof ReportParseError
             ? cause.message
             : "Не удалось обработать отчёт. Файл не был отправлен на сервер",
+        );
+        setDiagnostic(await buildUploadDiagnostic(file, format, cause));
+      }
+    } finally {
+      if (analysisRunRef.current === runId) {
+        setIsAnalyzing(false);
+      }
+    }
+  }
+
+  async function handleLoadDemoReport() {
+    const runId = ++analysisRunRef.current;
+
+    setFile(null);
+    setFormat(null);
+    resetAnalysis();
+    setError("");
+    setIsAnalyzing(true);
+
+    try {
+      const response = await fetch(WB_XLSX_DEMO_REPORT.href, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("demo report is unavailable");
+      }
+
+      const buffer = await response.arrayBuffer();
+      const demoFile = new File(
+        [new Uint8Array(buffer)],
+        WB_XLSX_DEMO_REPORT.downloadName,
+        {
+          type: WB_XLSX_DEMO_REPORT.mimeType,
+        },
+      );
+      const parsed = await parseWildberriesApiPreviewWorkbook(demoFile);
+
+      if (analysisRunRef.current === runId) {
+        setFile(demoFile);
+        setFormat("XLSX");
+        setReport(parsed);
+        setDiagnostic(null);
+        setDemoMessage("Демо XLSX WB открыт. Результат ниже обновлён.");
+        scrollToAnalysisSoon();
+      }
+    } catch {
+      if (analysisRunRef.current === runId) {
+        setError(
+          "Не удалось открыть демо-отчёт. Попробуйте выбрать XLSX вручную.",
+        );
+      }
+    } finally {
+      if (analysisRunRef.current === runId) {
+        setIsAnalyzing(false);
+      }
+    }
+  }
+
+  async function handleLoadDemoCsvReport() {
+    const runId = ++analysisRunRef.current;
+
+    setFile(null);
+    setFormat(null);
+    resetAnalysis();
+    setError("");
+    setIsAnalyzing(true);
+
+    try {
+      const response = await fetch(WB_CSV_DEMO_REPORT.href, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("demo csv report is unavailable");
+      }
+
+      const text = await response.text();
+      const demoFile = new File([text], WB_CSV_DEMO_REPORT.downloadName, {
+        type: WB_CSV_DEMO_REPORT.mimeType,
+      });
+      const parsed = parseWildberriesFinanceCsvText(text);
+
+      if (analysisRunRef.current === runId) {
+        setFile(demoFile);
+        setFormat("CSV");
+        setReport(parsed);
+        setDiagnostic(null);
+        setDemoMessage("Демо CSV WB открыт. Результат ниже обновлён.");
+        scrollToAnalysisSoon();
+      }
+    } catch {
+      if (analysisRunRef.current === runId) {
+        setError(
+          "Не удалось открыть демо CSV. Попробуйте скачать шаблон и выбрать его вручную.",
+        );
+      }
+    } finally {
+      if (analysisRunRef.current === runId) {
+        setIsAnalyzing(false);
+      }
+    }
+  }
+
+  async function handleLoadDemoOzonCsvReport() {
+    const runId = ++analysisRunRef.current;
+
+    setFile(null);
+    setFormat(null);
+    resetAnalysis();
+    setError("");
+    setIsAnalyzing(true);
+
+    try {
+      const response = await fetch(OZON_CSV_DEMO_REPORT.href, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("demo ozon csv report is unavailable");
+      }
+
+      const text = await response.text();
+      const demoFile = new File([text], OZON_CSV_DEMO_REPORT.downloadName, {
+        type: OZON_CSV_DEMO_REPORT.mimeType,
+      });
+      const parsed = parseOzonFinanceCsvText(text);
+
+      if (analysisRunRef.current === runId) {
+        setFile(demoFile);
+        setFormat("CSV");
+        setReport(parsed);
+        setDiagnostic(null);
+        setDemoMessage("Демо CSV Ozon открыт. Результат ниже обновлён.");
+        scrollToAnalysisSoon();
+      }
+    } catch {
+      if (analysisRunRef.current === runId) {
+        setError(
+          "Не удалось открыть демо CSV Ozon. Попробуйте скачать шаблон и выбрать его вручную.",
         );
       }
     } finally {
@@ -759,7 +1233,7 @@ export function ReportUpload() {
         <strong>
           {file ? "Выбрать другой отчёт" : "Выбрать отчёт с устройства"}
         </strong>
-        <span>WB XLSX, максимум 10 МБ</span>
+        <span>WB XLSX или CSV WB/Ozon, максимум 10 МБ</span>
         <input
           ref={inputRef}
           id="report-file"
@@ -772,8 +1246,9 @@ export function ReportUpload() {
       </label>
 
       <p className="visually-hidden" id="upload-limit">
-        Поддерживаются файлы CSV и XLSX размером до 10 мегабайт. Первый
-        анализатор работает с XLSX финансового отчёта Wildberries.
+        Поддерживаются файлы CSV и XLSX размером до 10 мегабайт. Анализатор
+        работает с XLSX финансового отчёта Wildberries, preview CSV
+        API-подобного отчёта WB и synthetic preview CSV Ozon.
       </p>
       <div id="upload-status" aria-live="polite">
         {error && (
@@ -782,6 +1257,7 @@ export function ReportUpload() {
             {error}
           </p>
         )}
+        {diagnostic && <UploadDiagnosticCard diagnostic={diagnostic} />}
         {file && format && (
           <div className="selected-file">
             <span className="file-type" aria-hidden="true">
@@ -801,25 +1277,60 @@ export function ReportUpload() {
         )}
         {file && format === "CSV" && (
           <p className="upload-message upload-format-note">
-            Первый адаптер разбирает XLSX с полями финансового отчёта WB. CSV
-            можно выбрать, но его анализ появится после фиксации формата.
+            CSV будет разобран preview-адаптером WB или Ozon по заголовкам. Если
+            в файле есть только сервисные строки без SKU, расчёт остановится с
+            объяснением.
           </p>
         )}
       </div>
 
-      <button
-        className="button button-primary upload-submit"
-        type="button"
-        disabled={!file || format !== "XLSX" || isAnalyzing}
-        onClick={handleAnalyze}
-      >
-        {isAnalyzing ? "Сверяем операции…" : "Проверить отчёт локально"}
-      </button>
+      <div className="upload-actions">
+        <button
+          className="button button-primary upload-submit"
+          type="button"
+          disabled={!file || isAnalyzing}
+          onClick={handleAnalyze}
+        >
+          {isAnalyzing ? "Сверяем операции…" : "Проверить отчёт локально"}
+        </button>
+        <button
+          className="button upload-demo"
+          type="button"
+          disabled={isAnalyzing}
+          onClick={handleLoadDemoReport}
+        >
+          <span>Открыть демо XLSX WB</span>
+          <span aria-hidden="true">↓</span>
+        </button>
+        <button
+          className="button upload-demo"
+          type="button"
+          disabled={isAnalyzing}
+          onClick={handleLoadDemoCsvReport}
+        >
+          <span>Открыть демо CSV WB</span>
+          <span aria-hidden="true">↓</span>
+        </button>
+        <button
+          className="button upload-demo"
+          type="button"
+          disabled={isAnalyzing}
+          onClick={handleLoadDemoOzonCsvReport}
+        >
+          <span>Открыть демо CSV Ozon</span>
+          <span aria-hidden="true">↓</span>
+        </button>
+      </div>
+      {demoMessage && (
+        <p className="upload-message upload-demo-message">{demoMessage}</p>
+      )}
       <p className="upload-privacy">
         <span aria-hidden="true">●</span>
         Анализ выполняется в этом браузере. Файл не отправляется и не хранится
         на сервере
       </p>
+
+      <ImportAdapterStatus isAnalyzing={isAnalyzing} />
 
       {report && (
         <CostEditor
@@ -835,7 +1346,10 @@ export function ReportUpload() {
       )}
       {analysis && (
         <div>
-          <AnalysisResult analysis={analysis} />
+          <AnalysisResult
+            analysis={analysis}
+            sourceFileName={file?.name ?? "report.xlsx"}
+          />
         </div>
       )}
     </div>

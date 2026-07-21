@@ -1,0 +1,5 @@
+realizationreport_id,date_from,date_to,currency_name,subject_name,nm_id,barcode,supplier_oper_name,quantity,retail_amount,ppvz_for_pay,delivery_rub,penalty,additional_payment,storage_fee,deduction,acquiring_fee,acceptance,payment_processing,cashback_amount,seller_promo_discount,loyalty_discount
+300000001,2026-07-01,2026-07-07,RUB,Органайзер для дома,700000001,SYNTH-000001,Продажа,2,2000,1500,120,0,0,20,0,30,0,10,0,0,0
+300000001,2026-07-01,2026-07-07,RUB,Органайзер для дома,700000001,SYNTH-000001,Возврат,1,1000,750,60,0,0,10,0,15,0,5,0,0,0
+300000001,2026-07-01,2026-07-07,RUB,Бутылка для воды,700000002,SYNTH-000002,Продажа,1,900,675,40,5,25,8,7,13,3,4,2,6,1
+300000001,2026-07-01,2026-07-07,RUB,,0,,Возмещение издержек по перевозке/по складским операциям с товаром,0,0,0,0,0,0,0,0,0,0,0,0,0,0

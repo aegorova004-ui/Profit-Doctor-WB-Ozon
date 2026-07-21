@@ -34,6 +34,18 @@ describe("detectReportMarketplace", () => {
     ).toBe("wildberries");
   });
 
+  it("recognizes the WB finance CSV API-like headers", () => {
+    expect(
+      detectReportMarketplace([
+        "realizationreport_id",
+        "nm_id",
+        "barcode",
+        "supplier_oper_name",
+        "ppvz_for_pay",
+      ]),
+    ).toBe("wildberries");
+  });
+
   it("recognizes representative Ozon headers", () => {
     expect(
       detectReportMarketplace([

@@ -13,7 +13,7 @@ export const WB_API_PREVIEW_FORMAT_VERSION =
 const MAX_HEADER_SCAN_ROWS = 20;
 const MAX_REPORT_ROWS = 100_000;
 const MAX_REPORT_COLUMNS = 100;
-const REQUIRED_HEADERS = [
+export const WB_API_PREVIEW_REQUIRED_HEADERS = [
   "currency_name",
   "subject_name",
   "nm_id",
@@ -30,7 +30,7 @@ const REQUIRED_HEADERS = [
   "for_pay",
 ] as const;
 
-type RequiredHeader = (typeof REQUIRED_HEADERS)[number];
+type RequiredHeader = (typeof WB_API_PREVIEW_REQUIRED_HEADERS)[number];
 type RawCell = string | boolean | Date | null;
 type RawRow = readonly RawCell[];
 
@@ -49,6 +49,12 @@ type Aggregate = {
   otherExpensesKopecks: bigint;
   payoutKopecks: bigint;
 };
+
+function decodeNumericHtmlEntities(value: string): string {
+  return value.replace(/&#(\d+);/g, (_, code: string) =>
+    String.fromCodePoint(Number(code)),
+  );
+}
 
 export class ReportParseError extends Error {
   readonly code: string;
@@ -71,7 +77,7 @@ function cellToString(cell: RawCell | undefined): string {
     return cell.toISOString();
   }
 
-  return String(cell).trim();
+  return decodeNumericHtmlEntities(String(cell)).trim();
 }
 
 function normalizeHeader(cell: RawCell | undefined): string {
@@ -90,6 +96,24 @@ function findHeaderRow(rows: readonly RawRow[]): number {
     if (markerCount >= 3) {
       return index;
     }
+  }
+
+  const firstRowValues = new Set(rows[0]?.map(normalizeHeader) ?? []);
+  const catalogMarkerCount = [
+    "категория",
+    "название",
+    "артикул",
+    "url",
+    "цена",
+    "цена со скидкой",
+    "производитель",
+  ].filter((header) => firstRowValues.has(header)).length;
+
+  if (catalogMarkerCount >= 5) {
+    throw new ReportParseError(
+      "WB_PRODUCT_CATALOG_UPLOADED",
+      "Похоже, выбран товарный каталог Wildberries. Для расчёта прибыли нужен финансовый отчёт с выплатами и удержаниями",
+    );
   }
 
   throw new ReportParseError(
@@ -111,7 +135,7 @@ function buildHeaderMap(headerRow: RawRow): Map<RequiredHeader, number> {
     );
   }
 
-  const missing = REQUIRED_HEADERS.filter(
+  const missing = WB_API_PREVIEW_REQUIRED_HEADERS.filter(
     (required) => !allHeaders.includes(required),
   );
 
@@ -123,7 +147,10 @@ function buildHeaderMap(headerRow: RawRow): Map<RequiredHeader, number> {
   }
 
   return new Map(
-    REQUIRED_HEADERS.map((header) => [header, allHeaders.indexOf(header)]),
+    WB_API_PREVIEW_REQUIRED_HEADERS.map((header) => [
+      header,
+      allHeaders.indexOf(header),
+    ]),
   );
 }
 
