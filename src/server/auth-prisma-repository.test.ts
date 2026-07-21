@@ -154,4 +154,17 @@ describe("createPrismaAuthRepository", () => {
       },
     });
   });
+
+  it("revokes auth sessions without changing already revoked sessions", async () => {
+    const prisma = createPrismaMock();
+    const repository = createPrismaAuthRepository(prisma);
+    const revokedAt = new Date("2026-07-21T10:07:00.000Z");
+
+    await repository.revokeAuthSession("token-hash", revokedAt);
+
+    expect(prisma.authSession.updateMany).toHaveBeenCalledWith({
+      where: { tokenHash: "token-hash", revokedAt: null },
+      data: { revokedAt },
+    });
+  });
 });

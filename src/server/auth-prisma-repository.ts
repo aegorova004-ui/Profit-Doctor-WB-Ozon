@@ -51,7 +51,7 @@ export type AuthPrismaClient = {
     }): Promise<AuthSessionRecord | null>;
     updateMany(input: {
       where: { tokenHash: string; revokedAt: null };
-      data: { lastUsedAt: Date };
+      data: { lastUsedAt: Date } | { revokedAt: Date };
     }): Promise<unknown>;
     create(input: {
       data: {
@@ -71,6 +71,7 @@ export type AuthPrismaRepository = LoginCodeRepository &
       tokenHash: string;
       expiresAt: Date;
     }): Promise<void>;
+    revokeAuthSession(tokenHash: string, revokedAt: Date): Promise<void>;
   };
 
 export function createPrismaAuthRepository(
@@ -143,6 +144,13 @@ export function createPrismaAuthRepository(
           tokenHash: input.tokenHash,
           expiresAt: input.expiresAt,
         },
+      });
+    },
+
+    async revokeAuthSession(tokenHash, revokedAt) {
+      await prisma.authSession.updateMany({
+        where: { tokenHash, revokedAt: null },
+        data: { revokedAt },
       });
     },
   };

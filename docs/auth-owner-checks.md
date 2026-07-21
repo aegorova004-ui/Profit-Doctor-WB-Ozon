@@ -135,6 +135,12 @@ Prisma schema содержит:
 - lookup идёт через hash session token;
 - без cookie возвращается `401 unauthenticated` без repository-запроса.
 
+`src/server/auth-logout.ts` и `src/app/api/auth/logout/route.ts` подключают выход:
+
+- session token читается только из cookie;
+- в БД пишется `revokedAt` по hash token;
+- cookie очищается даже тогда, когда session cookie уже отсутствует.
+
 `src/server/auth-rate-limit.ts` содержит rate-limit policy для будущих auth route handlers:
 
 - не более 3 запросов login code за 15 минут;
@@ -187,6 +193,7 @@ Prisma schema содержит:
 - отсутствие plaintext-кода в create-запросе;
 - выбор минимального набора auth-полей;
 - защиту от обновления revoked-сессий при `markUsed`.
+- revocation auth-сессий без изменения уже revoked-сессий.
 
 `src/server/auth-flow.test.ts` покрывает:
 
@@ -205,6 +212,12 @@ Prisma schema содержит:
 
 - `200` с текущим пользователем по session cookie;
 - `401 unauthenticated` без repository-запроса.
+
+`src/server/auth-logout.test.ts` покрывает:
+
+- revocation текущей session через hash token;
+- очистку session cookie;
+- отсутствие repository-запроса без cookie.
 
 `src/server/auth-validation.test.ts` покрывает:
 

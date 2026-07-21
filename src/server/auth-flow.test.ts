@@ -22,6 +22,7 @@ function createRepository(): AuthPrismaRepository {
     findByTokenHash: vi.fn(async () => null),
     markUsed: vi.fn(async () => undefined),
     createAuthSession: vi.fn(async () => undefined),
+    revokeAuthSession: vi.fn(async () => undefined),
   };
 }
 
