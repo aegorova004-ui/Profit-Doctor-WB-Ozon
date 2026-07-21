@@ -936,6 +936,7 @@ export function ReportUpload() {
   const [costErrors, setCostErrors] = useState<Record<string, string>>({});
   const [costFormError, setCostFormError] = useState("");
   const [calculationMessage, setCalculationMessage] = useState("");
+  const [demoMessage, setDemoMessage] = useState("");
   const [appliedUnitCosts, setAppliedUnitCosts] = useState<
     Record<string, number>
   >({});
@@ -952,7 +953,24 @@ export function ReportUpload() {
     setCostErrors({});
     setCostFormError("");
     setCalculationMessage("");
+    setDemoMessage("");
     setAppliedUnitCosts({});
+  }
+
+  function scrollToAnalysisSoon() {
+    const scroll = () => {
+      const analysisTitle = document.getElementById("analysis-title");
+      if (typeof analysisTitle?.scrollIntoView === "function") {
+        analysisTitle.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(scroll);
+      return;
+    }
+
+    scroll();
   }
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -1013,6 +1031,7 @@ export function ReportUpload() {
       if (analysisRunRef.current === runId) {
         setReport(parsed);
         setDiagnostic(null);
+        scrollToAnalysisSoon();
       }
     } catch (cause) {
       if (analysisRunRef.current === runId) {
@@ -1063,6 +1082,8 @@ export function ReportUpload() {
         setFormat("XLSX");
         setReport(parsed);
         setDiagnostic(null);
+        setDemoMessage("Демо XLSX WB открыт. Результат ниже обновлён.");
+        scrollToAnalysisSoon();
       }
     } catch {
       if (analysisRunRef.current === runId) {
@@ -1106,6 +1127,8 @@ export function ReportUpload() {
         setFormat("CSV");
         setReport(parsed);
         setDiagnostic(null);
+        setDemoMessage("Демо CSV WB открыт. Результат ниже обновлён.");
+        scrollToAnalysisSoon();
       }
     } catch {
       if (analysisRunRef.current === runId) {
@@ -1149,6 +1172,8 @@ export function ReportUpload() {
         setFormat("CSV");
         setReport(parsed);
         setDiagnostic(null);
+        setDemoMessage("Демо CSV Ozon открыт. Результат ниже обновлён.");
+        scrollToAnalysisSoon();
       }
     } catch {
       if (analysisRunRef.current === runId) {
@@ -1320,7 +1345,8 @@ export function ReportUpload() {
           disabled={isAnalyzing}
           onClick={handleLoadDemoReport}
         >
-          Открыть демо XLSX WB
+          <span>Открыть демо XLSX WB</span>
+          <span aria-hidden="true">↓</span>
         </button>
         <button
           className="button upload-demo"
@@ -1328,7 +1354,8 @@ export function ReportUpload() {
           disabled={isAnalyzing}
           onClick={handleLoadDemoCsvReport}
         >
-          Открыть демо CSV WB
+          <span>Открыть демо CSV WB</span>
+          <span aria-hidden="true">↓</span>
         </button>
         <button
           className="button upload-demo"
@@ -1336,27 +1363,33 @@ export function ReportUpload() {
           disabled={isAnalyzing}
           onClick={handleLoadDemoOzonCsvReport}
         >
-          Открыть демо CSV Ozon
+          <span>Открыть демо CSV Ozon</span>
+          <span aria-hidden="true">↓</span>
         </button>
       </div>
-      <section
-        className="demo-templates"
-        aria-labelledby="demo-templates-title"
-      >
-        <div>
-          <h2 id="demo-templates-title">Шаблоны для проверки</h2>
-          <p>Все файлы синтетические. Можно скачать и загрузить вручную.</p>
-        </div>
-        <ul>
-          {PUBLIC_DEMO_TEMPLATE_LINKS.map((template) => (
-            <li key={template.href}>
-              <a href={template.href} download>
-                {template.description}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {demoMessage && (
+        <p className="upload-message upload-demo-message">{demoMessage}</p>
+      )}
+      {!report && !diagnostic && (
+        <section
+          className="demo-templates"
+          aria-labelledby="demo-templates-title"
+        >
+          <div>
+            <h2 id="demo-templates-title">Скачать шаблон вручную</h2>
+          </div>
+          <ul>
+            {PUBLIC_DEMO_TEMPLATE_LINKS.map((template) => (
+              <li key={template.href}>
+                <a href={template.href} download>
+                  <span>{template.description}</span>
+                  <span aria-hidden="true">↓</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <p className="upload-privacy">
         <span aria-hidden="true">●</span>
         Анализ выполняется в этом браузере. Файл не отправляется и не хранится

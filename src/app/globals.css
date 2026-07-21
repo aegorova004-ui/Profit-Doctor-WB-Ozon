@@ -2279,24 +2279,57 @@ tbody tr:hover {
 
 .upload-actions {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 10px;
-  margin-top: 15px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .upload-submit {
   width: 100%;
+  grid-column: 1 / -1;
 }
 
 .upload-demo {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
   color: #315f3d;
   border-color: #cfe0c7;
   background: #f1faec;
+  box-shadow: 0 10px 26px rgba(27, 62, 40, 0.06);
+  text-align: left;
+}
+
+.upload-demo span:first-child {
+  min-width: 0;
+}
+
+.upload-demo span[aria-hidden="true"] {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: #183226;
+  border-radius: 999px;
+  background: #a9f85d;
+  font-size: 15px;
+  line-height: 1;
 }
 
 .upload-demo:hover:not(:disabled) {
   border-color: #9bc686;
   background: #e7f8dd;
+  transform: translateY(-1px);
+}
+
+.upload-demo-message {
+  margin-top: 12px;
+  border-color: #bfe3ac;
+  background: #f1faec;
 }
 
 .import-adapter-status {
@@ -2348,9 +2381,9 @@ tbody tr:hover {
 
 .demo-templates {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   margin-top: 16px;
-  padding: 16px;
+  padding: 14px;
   border: 1px solid #d8e0d4;
   border-radius: 16px;
   background: #f7faf4;
@@ -2359,7 +2392,7 @@ tbody tr:hover {
 .demo-templates h2 {
   margin: 0;
   color: #0d1915;
-  font-size: 16px;
+  font-size: 14px;
   letter-spacing: -0.02em;
 }
 
@@ -2380,7 +2413,10 @@ tbody tr:hover {
 }
 
 .demo-templates a {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   min-height: 100%;
   padding: 11px 12px;
   color: #244f31;
@@ -2391,6 +2427,23 @@ tbody tr:hover {
   font-weight: 800;
   line-height: 1.35;
   text-decoration: none;
+}
+
+.demo-templates a span:first-child {
+  min-width: 0;
+}
+
+.demo-templates a span[aria-hidden="true"] {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: #173c2a;
+  border-radius: 999px;
+  background: #e4f7d8;
+  font-size: 14px;
+  line-height: 1;
 }
 
 .demo-templates a:hover {
@@ -2914,11 +2967,11 @@ tbody tr:hover {
 
 .report-export {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 18px 28px;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  gap: 18px;
   margin-top: 18px;
-  padding: 20px;
+  padding: 22px;
   border: 1px solid #d6dfd2;
   border-radius: 16px;
   background: linear-gradient(135deg, #f6f9f3, #eef5e9);
@@ -2939,14 +2992,15 @@ tbody tr:hover {
   max-width: 650px;
   margin: 9px 0 0;
   color: #617068;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
 .report-export-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
-  gap: 9px;
+  gap: 12px;
 }
 
 .report-export-controls {
@@ -2955,20 +3009,28 @@ tbody tr:hover {
 }
 
 .report-export-actions .button {
-  min-width: 174px;
-  min-height: 58px;
-  display: grid;
-  gap: 4px;
-  place-content: center;
-  padding: 10px 16px;
-  text-align: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 18px;
+  text-align: left;
 }
 
-.report-export-actions .button small {
-  color: inherit;
-  font-size: 9px;
-  font-weight: 600;
-  opacity: 0.68;
+.report-export-actions .button span[aria-hidden="true"] {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  color: #183226;
+  border-radius: 999px;
+  background: rgba(169, 248, 93, 0.78);
+  font-size: 16px;
+  line-height: 1;
 }
 
 .report-export-secondary {
@@ -2982,18 +3044,8 @@ tbody tr:hover {
   background: #f8fbf6;
 }
 
-.report-export .report-export-format-note {
-  max-width: 390px;
-  margin: 0;
-  color: #617068;
-  font-size: 10px;
-  line-height: 1.45;
-  text-align: center;
-}
-
 .report-export-status {
   min-height: 0;
-  grid-column: 1 / -1;
 }
 
 .report-export-status:empty {
@@ -3001,8 +3053,11 @@ tbody tr:hover {
 }
 
 .report-export-status p {
-  margin: -3px 0 0;
+  margin: 0;
+  padding: 10px 12px;
   color: #367047;
+  border-radius: 12px;
+  background: #eef8e7;
   font-size: 11px;
   font-weight: 700;
 }

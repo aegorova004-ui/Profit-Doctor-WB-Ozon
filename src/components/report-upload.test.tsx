@@ -219,12 +219,6 @@ describe("ReportUpload", () => {
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(() => undefined);
 
-    expect(
-      screen.getByText(
-        "Для просмотра выбирайте XLSX. CSV нужен для импорта и не хранит оформление таблицы.",
-      ),
-    ).toBeTruthy();
-
     await user.click(screen.getByRole("button", { name: /CSV для импорта/ }));
     expect(createObjectUrl).toHaveBeenCalledTimes(1);
     expect(
@@ -391,6 +385,9 @@ describe("ReportUpload", () => {
       }),
     ).toBeTruthy();
     expect(screen.getByText("profit-doctor-demo-wb-finance.csv")).toBeTruthy();
+    expect(
+      screen.getByText("Демо CSV WB открыт. Результат ниже обновлён."),
+    ).toBeTruthy();
     expect(screen.getByText("3 операций")).toBeTruthy();
     expect(screen.getByText("2 SKU")).toBeTruthy();
   });
@@ -433,6 +430,9 @@ describe("ReportUpload", () => {
     ).toBeTruthy();
     expect(
       screen.getByText("profit-doctor-demo-ozon-finance.csv"),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Демо CSV Ozon открыт. Результат ниже обновлён."),
     ).toBeTruthy();
     expect(screen.getByText("4 операций")).toBeTruthy();
     expect(screen.getByText("3 SKU")).toBeTruthy();

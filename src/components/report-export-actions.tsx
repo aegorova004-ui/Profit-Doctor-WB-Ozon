@@ -107,7 +107,7 @@ export function ReportExportActions({
             onClick={handleCsvDownload}
           >
             CSV для импорта
-            <small>Без оформления и ширины колонок</small>
+            <span aria-hidden="true">↓</span>
           </button>
           <button
             className="button button-primary"
@@ -116,13 +116,9 @@ export function ReportExportActions({
             onClick={handleXlsxDownload}
           >
             {isCreatingXlsx ? "Создаём XLSX…" : "XLSX для Excel"}
-            <small>Оформленный файл с двумя листами</small>
+            <span aria-hidden="true">↓</span>
           </button>
         </div>
-        <p className="report-export-format-note">
-          Для просмотра выбирайте XLSX. CSV нужен для импорта и не хранит
-          оформление таблицы.
-        </p>
       </div>
       <div className="report-export-status" aria-live="polite">
         {message && <p>{message}</p>}
