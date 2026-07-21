@@ -45,6 +45,7 @@
 - [ ] Server-side Prisma client переиспользуется в development и не создаёт лишние подключения при HMR.
 - [ ] Auth-flow отдаёт plaintext login code только email/OTP delivery provider и не возвращает его клиенту.
 - [ ] Auth endpoints не создают login code, если email/OTP delivery provider не настроен.
+- [ ] Email/OTP provider выбран по [`docs/auth-email-provider-options.md`](auth-email-provider-options.md), домен прошёл SPF/DKIM/DMARC.
 - [ ] Auth route payload валидируется до обращения к Prisma или email provider.
 - [ ] Невалидный, истёкший и уже использованный login code дают одинаковый публичный ответ.
 - [ ] Auth endpoints ограничивают частоту запроса и проверки login code до обращения к provider/Prisma и возвращают `429 rate_limited` с `retryAfterSeconds`.

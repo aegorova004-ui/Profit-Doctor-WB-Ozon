@@ -21,6 +21,7 @@
 - Информационные подсказки тарифов открываются наведением на десктопе и нажатием на сенсорных устройствах; активная карточка поднимается поверх соседних.
 - Prisma schema и начальная SQL-миграция содержат `User`, `UploadedReport`, `ReportRow`, `ProductProfitSnapshot` и `SubscriptionPlan`.
 - Добавлен фундамент auth/owner checks для будущей серверной истории отчётов: Prisma singleton, Prisma-модели `LoginCode`/`AuthSession`, `src/server/access-control.ts`, `src/server/auth-tokens.ts`, `src/server/auth-login-code.ts`, `src/server/auth-prisma-repository.ts`, `src/server/auth-flow.ts`, `src/server/auth-current-user.ts`, `src/server/auth-validation.ts`, `src/server/auth-http.ts` с `429 rate_limited` и `503 delivery_unavailable`, `src/server/auth-api.ts`, preview route handlers `/api/auth/request-code`, `/api/auth/verify-code`, `/api/auth/me` и `/api/auth/logout`, `src/server/auth-rate-limit.ts`, `src/server/auth-session.ts`, тесты доступа и документ `docs/auth-owner-checks.md`.
+- Подготовлен shortlist email/OTP-провайдеров для auth: основной кандидат UnisenderGo, альтернатива Sendsay, дополнительный кандидат SendPulse, запасной DashaMail.
 - Финансовое ядро считает суммы в integer-копейках, помечает неполный результат как оценку и возвращает маржу/ROI в базисных пунктах.
 - Контракт парсера, автоопределение WB/Ozon по заголовкам и синтетические fixtures готовы как основа Sprint 1.
 - Добавлен синтетический XLSX-fixture финансового отчёта Wildberries: 22 API-поля, продажа, возврат, логистика и хранение. Файл не содержит персональных или коммерческих данных и не заменяет актуальную анонимизированную выгрузку продавца.
@@ -47,7 +48,7 @@
 
 1. Получить полностью анонимизированный актуальный отчёт Wildberries и сравнить его с preview-контрактом. Переданный 13 июля XLSX — явно синтетический тестовый файл и этот пункт не закрывает.
 2. Добавить CSV/XLSX-экспорт результата и smoke-тест подтверждённого сценария.
-3. Выбрать конкретный email magic link/OTP provider, заменить отключённый delivery route boundary и подключить получение текущего пользователя на сервере.
+3. Проверить руками условия UnisenderGo/Sendsay, выбрать email magic link/OTP provider и заменить отключённый delivery route boundary.
 4. Подключить owner-check guards к будущим data access functions перед любой серверной историей отчётов.
 
 ## Известные риски

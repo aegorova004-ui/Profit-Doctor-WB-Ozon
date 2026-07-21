@@ -258,9 +258,8 @@ Prisma schema содержит:
 
 ## Что ещё нужно перед серверной историей
 
-- Выбрать конкретного провайдера email magic link/OTP.
+- Выбрать конкретного провайдера email magic link/OTP. Shortlist и критерии: [`docs/auth-email-provider-options.md`](auth-email-provider-options.md).
 - Заменить `createUnavailableLoginCodeDelivery` на реальный email/OTP delivery provider.
-- Подключить `resolveCurrentUserFromCookies` к Next route handlers.
 - Заменить временный in-memory rate-limit store на durable Redis/PostgreSQL policy перед production.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
