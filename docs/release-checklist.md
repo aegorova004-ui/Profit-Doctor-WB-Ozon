@@ -39,6 +39,7 @@
 - [ ] Session cookie имеет `httpOnly`, `sameSite=lax`, `secure` в production и понятный срок жизни.
 - [ ] Login code действует ограниченное время и гасится после успешной проверки.
 - [ ] Prisma auth repository не выбирает лишние поля пользователя и не пишет plaintext-коды/токены.
+- [ ] Auth-flow отдаёт plaintext login code только email/OTP delivery provider и не возвращает его клиенту.
 - [ ] Срок хранения исходных файлов и удаление проверены.
 - [ ] Платёжный статус подтверждается на сервере; webhook защищён от повтора и подделки.
 

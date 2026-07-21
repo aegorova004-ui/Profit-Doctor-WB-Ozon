@@ -87,6 +87,12 @@ Prisma schema содержит:
 - обновление `lastUsedAt` без изменения revoked-сессий;
 - создание `AuthSession` по `userId`, `tokenHash` и `expiresAt`.
 
+`src/server/auth-flow.ts` содержит прикладной auth-flow без привязки к конкретному email provider:
+
+- request login code: создаёт hash-код и отдаёт plaintext только delivery-callback;
+- verify login code: гасит валидный код, создаёт session token и сохраняет только `tokenHash`;
+- возвращает `invalid_code` без создания сессии, если код неверный, истёкший или уже использован.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -131,9 +137,16 @@ Prisma schema содержит:
 - выбор минимального набора auth-полей;
 - защиту от обновления revoked-сессий при `markUsed`.
 
+`src/server/auth-flow.test.ts` покрывает:
+
+- отправку plaintext login code только через delivery-callback;
+- создание session token с сохранением только hash;
+- отказ без создания сессии при невалидном коде.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
+- Подключить `requestLoginCode` и `verifyLoginCodeAndCreateSession` к Next route handlers.
 - Подключить `resolveCurrentUserFromSessionToken` к Next route handlers через `profit_doctor_session`.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
