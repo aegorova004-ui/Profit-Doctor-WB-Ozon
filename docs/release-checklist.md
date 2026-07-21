@@ -37,6 +37,7 @@
 - [ ] Истёкшие, consumed и revoked auth-записи не дают доступ.
 - [ ] Текущий пользователь определяется на сервере по session cookie через hash lookup, а не по `userId` из клиента.
 - [ ] Session cookie имеет `httpOnly`, `sameSite=lax`, `secure` в production и понятный срок жизни.
+- [ ] Без session cookie сервер не делает лишних запросов к auth repository.
 - [ ] Login code действует ограниченное время и гасится после успешной проверки.
 - [ ] Prisma auth repository не выбирает лишние поля пользователя и не пишет plaintext-коды/токены.
 - [ ] Auth-flow отдаёт plaintext login code только email/OTP delivery provider и не возвращает его клиенту.

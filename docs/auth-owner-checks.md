@@ -94,6 +94,13 @@ Prisma schema содержит:
 - verify login code: гасит валидный код, создаёт session token и сохраняет только `tokenHash`;
 - возвращает `invalid_code` без создания сессии, если код неверный, истёкший или уже использован.
 
+`src/server/auth-current-user.ts` содержит cookie-boundary helper:
+
+- читает только cookie `profit_doctor_session`;
+- передаёт token в `resolveCurrentUserFromSessionToken`;
+- возвращает текущего пользователя и единую cookie policy;
+- не обращается к repository, если session cookie отсутствует.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -144,11 +151,18 @@ Prisma schema содержит:
 - создание session token с сохранением только hash;
 - отказ без создания сессии при невалидном коде.
 
+`src/server/auth-current-user.test.ts` покрывает:
+
+- чтение правильной session cookie;
+- отсутствие запроса к repository без cookie;
+- резолв текущего пользователя через hash lookup;
+- возврат единой cookie policy.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
 - Подключить `requestLoginCode` и `verifyLoginCodeAndCreateSession` к Next route handlers.
-- Подключить `resolveCurrentUserFromSessionToken` к Next route handlers через `profit_doctor_session`.
+- Подключить `resolveCurrentUserFromCookies` к Next route handlers.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
 - Описать срок хранения исходных файлов и механизм удаления, если продукт решит сохранять файлы.
