@@ -16,16 +16,19 @@ import { parseCsvRows } from "@/domain/reports/csv";
 import { detectReportMarketplace } from "@/domain/reports/detect-marketplace";
 import {
   parseOzonFinanceCsvText,
+  OZON_FINANCE_CSV_PREVIEW_FORMAT_VERSION,
   OZON_FINANCE_CSV_REQUIRED_HEADERS,
 } from "@/domain/reports/ozon-finance-csv-preview";
 import type { ParsedReport } from "@/domain/reports/parser";
 import {
   parseWildberriesFinanceCsvText,
+  WB_FINANCE_CSV_PREVIEW_FORMAT_VERSION,
   WB_FINANCE_CSV_REQUIRED_HEADERS,
 } from "@/domain/reports/wildberries-finance-csv-preview";
 import {
   parseWildberriesApiPreviewWorkbook,
   ReportParseError,
+  WB_API_PREVIEW_FORMAT_VERSION,
   WB_API_PREVIEW_REQUIRED_HEADERS,
 } from "@/domain/reports/wildberries-api-preview";
 import { validateReportFile } from "@/domain/reports/validate-upload";
@@ -56,15 +59,15 @@ function marketplaceShortName(marketplace: ParsedReport["marketplace"]) {
 }
 
 function adapterDisplayName(report: ParsedReport): string {
-  if (report.formatVersion === "wb:api-financial-report:preview-2026-07") {
+  if (report.formatVersion === WB_API_PREVIEW_FORMAT_VERSION) {
     return "WB XLSX API preview";
   }
 
-  if (report.formatVersion === "wb:finance-report:api-csv:preview-2026-07") {
+  if (report.formatVersion === WB_FINANCE_CSV_PREVIEW_FORMAT_VERSION) {
     return "WB CSV finance preview";
   }
 
-  if (report.formatVersion === "ozon:finance-report:csv:preview-2026-07") {
+  if (report.formatVersion === OZON_FINANCE_CSV_PREVIEW_FORMAT_VERSION) {
     return "Ozon CSV finance preview";
   }
 
