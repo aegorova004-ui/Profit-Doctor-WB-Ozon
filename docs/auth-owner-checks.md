@@ -88,6 +88,11 @@ Prisma schema содержит:
 - обновление `lastUsedAt` без изменения revoked-сессий;
 - создание `AuthSession` по `userId`, `tokenHash` и `expiresAt`.
 
+`src/server/prisma.ts` содержит singleton Prisma client для server-side кода:
+
+- переиспользует client в development/HMR;
+- не сохраняет singleton в production.
+
 `src/server/auth-flow.ts` содержит прикладной auth-flow без привязки к конкретному email provider:
 
 - request login code: создаёт hash-код и отдаёт plaintext только delivery-callback;

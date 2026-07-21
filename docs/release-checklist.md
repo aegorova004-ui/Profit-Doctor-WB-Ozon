@@ -40,6 +40,7 @@
 - [ ] Без session cookie сервер не делает лишних запросов к auth repository.
 - [ ] Login code действует ограниченное время и гасится после успешной проверки.
 - [ ] Prisma auth repository не выбирает лишние поля пользователя и не пишет plaintext-коды/токены.
+- [ ] Server-side Prisma client переиспользуется в development и не создаёт лишние подключения при HMR.
 - [ ] Auth-flow отдаёт plaintext login code только email/OTP delivery provider и не возвращает его клиенту.
 - [ ] Auth route payload валидируется до обращения к Prisma или email provider.
 - [ ] Невалидный, истёкший и уже использованный login code дают одинаковый публичный ответ.
