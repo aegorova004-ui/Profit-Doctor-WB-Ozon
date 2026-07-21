@@ -3,21 +3,13 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import { parseCsvRows } from "./csv";
+import { PUBLIC_DEMO_FILE_NAMES } from "./demo-fixtures";
 import { detectReportMarketplace } from "./detect-marketplace";
 import { parseOzonFinanceCsvText } from "./ozon-finance-csv-preview";
 import { parseWildberriesApiPreviewWorkbook } from "./wildberries-api-preview";
 import { parseWildberriesFinanceCsvText } from "./wildberries-finance-csv-preview";
 
 const DEMO_DIRECTORY = new URL("../../../public/demo/", import.meta.url);
-
-const EXPECTED_DEMO_FILES = [
-  "ozon-finance-preview.csv",
-  "unsupported-finance-format.csv",
-  "wb-finance-api-preview.csv",
-  "wb-finance-large-preview.csv",
-  "wb-financial-report-preview.xlsx",
-  "wb-product-catalog-not-finance.xlsx",
-] as const;
 
 function readDemoText(fileName: string): string {
   return readFileSync(new URL(fileName, DEMO_DIRECTORY), "utf8");
@@ -36,10 +28,10 @@ describe("public demo fixtures", () => {
   it("keeps the public demo directory intentional", () => {
     const actualFiles = readdirSync(DEMO_DIRECTORY).sort();
 
-    expect(actualFiles).toEqual([...EXPECTED_DEMO_FILES].sort());
+    expect(actualFiles).toEqual([...PUBLIC_DEMO_FILE_NAMES].sort());
   });
 
-  it.each(EXPECTED_DEMO_FILES)("%s is not empty", (fileName) => {
+  it.each(PUBLIC_DEMO_FILE_NAMES)("%s is not empty", (fileName) => {
     const stats = statSync(new URL(fileName, DEMO_DIRECTORY));
 
     expect(stats.size).toBeGreaterThan(100);

@@ -13,6 +13,12 @@ import {
   type SkuDiagnosis,
 } from "@/domain/reports/diagnose-report";
 import { parseCsvRows } from "@/domain/reports/csv";
+import {
+  DEMO_TEMPLATE_LINKS,
+  OZON_CSV_DEMO_REPORT,
+  WB_CSV_DEMO_REPORT,
+  WB_XLSX_DEMO_REPORT,
+} from "@/domain/reports/demo-fixtures";
 import { detectReportMarketplace } from "@/domain/reports/detect-marketplace";
 import {
   parseOzonFinanceCsvText,
@@ -79,25 +85,10 @@ type UploadDiagnostic = {
   summary: string;
   foundColumns: string[];
   missingColumns: string[];
-  templateLinks: { href: string; label: string }[];
+  templateLinks: readonly { href: string; label: string }[];
 };
 
 type RawSheetCell = string | number | boolean | Date | null;
-
-const DEMO_TEMPLATE_LINKS = [
-  {
-    href: "/demo/wb-financial-report-preview.xlsx",
-    label: "WB XLSX demo",
-  },
-  {
-    href: "/demo/wb-finance-api-preview.csv",
-    label: "WB CSV demo",
-  },
-  {
-    href: "/demo/ozon-finance-preview.csv",
-    label: "Ozon CSV demo",
-  },
-];
 
 function normalizeDiagnosticHeader(value: string): string {
   return value.trim().toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
@@ -1048,7 +1039,7 @@ export function ReportUpload() {
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch("/demo/wb-financial-report-preview.xlsx", {
+      const response = await fetch(WB_XLSX_DEMO_REPORT.href, {
         cache: "no-store",
       });
 
@@ -1059,9 +1050,9 @@ export function ReportUpload() {
       const buffer = await response.arrayBuffer();
       const demoFile = new File(
         [new Uint8Array(buffer)],
-        "profit-doctor-demo-wb-financial.xlsx",
+        WB_XLSX_DEMO_REPORT.downloadName,
         {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          type: WB_XLSX_DEMO_REPORT.mimeType,
         },
       );
       const parsed = await parseWildberriesApiPreviewWorkbook(demoFile);
@@ -1095,7 +1086,7 @@ export function ReportUpload() {
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch("/demo/wb-finance-api-preview.csv", {
+      const response = await fetch(WB_CSV_DEMO_REPORT.href, {
         cache: "no-store",
       });
 
@@ -1104,8 +1095,8 @@ export function ReportUpload() {
       }
 
       const text = await response.text();
-      const demoFile = new File([text], "profit-doctor-demo-wb-finance.csv", {
-        type: "text/csv",
+      const demoFile = new File([text], WB_CSV_DEMO_REPORT.downloadName, {
+        type: WB_CSV_DEMO_REPORT.mimeType,
       });
       const parsed = parseWildberriesFinanceCsvText(text);
 
@@ -1138,7 +1129,7 @@ export function ReportUpload() {
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch("/demo/ozon-finance-preview.csv", {
+      const response = await fetch(OZON_CSV_DEMO_REPORT.href, {
         cache: "no-store",
       });
 
@@ -1147,8 +1138,8 @@ export function ReportUpload() {
       }
 
       const text = await response.text();
-      const demoFile = new File([text], "profit-doctor-demo-ozon-finance.csv", {
-        type: "text/csv",
+      const demoFile = new File([text], OZON_CSV_DEMO_REPORT.downloadName, {
+        type: OZON_CSV_DEMO_REPORT.mimeType,
       });
       const parsed = parseOzonFinanceCsvText(text);
 
@@ -1356,36 +1347,13 @@ export function ReportUpload() {
           <p>Все файлы синтетические. Можно скачать и загрузить вручную.</p>
         </div>
         <ul>
-          <li>
-            <a href="/demo/wb-financial-report-preview.xlsx" download>
-              WB XLSX — рабочий финансовый отчёт
-            </a>
-          </li>
-          <li>
-            <a href="/demo/wb-finance-api-preview.csv" download>
-              WB CSV — рабочий API-like finance
-            </a>
-          </li>
-          <li>
-            <a href="/demo/wb-finance-large-preview.csv" download>
-              WB CSV — большой файл для проверки таблицы
-            </a>
-          </li>
-          <li>
-            <a href="/demo/wb-product-catalog-not-finance.xlsx" download>
-              WB XLSX — товарный каталог для проверки ошибки
-            </a>
-          </li>
-          <li>
-            <a href="/demo/unsupported-finance-format.csv" download>
-              CSV — неизвестный формат для проверки ошибки
-            </a>
-          </li>
-          <li>
-            <a href="/demo/ozon-finance-preview.csv" download>
-              Ozon CSV — рабочий preview finance
-            </a>
-          </li>
+          {DEMO_TEMPLATE_LINKS.map((template) => (
+            <li key={template.href}>
+              <a href={template.href} download>
+                {template.description}
+              </a>
+            </li>
+          ))}
         </ul>
       </section>
       <p className="upload-privacy">
