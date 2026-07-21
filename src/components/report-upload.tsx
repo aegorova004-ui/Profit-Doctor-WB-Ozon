@@ -218,9 +218,13 @@ function AnalysisStatus({ row }: { row: ReportAnalysis["rows"][number] }) {
 
 function MobileAnalysisCards({ analysis }: { analysis: ReportAnalysis }) {
   return (
-    <div className="analysis-mobile-list">
+    <div className="analysis-mobile-list" data-testid="analysis-mobile-list">
       {analysis.rows.map((row) => (
-        <article className="analysis-mobile-card" key={row.sku}>
+        <article
+          className="analysis-mobile-card"
+          data-testid="analysis-mobile-card"
+          key={row.sku}
+        >
           <div className="analysis-mobile-heading">
             <div>
               <h3>{row.productName ?? row.sku}</h3>
@@ -955,6 +959,11 @@ export function ReportUpload() {
           <li>
             <a href="/demo/wb-finance-api-preview.csv" download>
               WB CSV — рабочий API-like finance
+            </a>
+          </li>
+          <li>
+            <a href="/demo/wb-finance-large-preview.csv" download>
+              WB CSV — большой файл для проверки таблицы
             </a>
           </li>
           <li>

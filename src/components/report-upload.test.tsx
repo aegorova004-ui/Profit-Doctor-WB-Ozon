@@ -19,6 +19,64 @@ vi.mock("write-excel-file/browser", () => ({
   })),
 }));
 
+function buildLargeWildberriesFinanceCsv(rowCount: number) {
+  const header = [
+    "realizationreport_id",
+    "date_from",
+    "date_to",
+    "currency_name",
+    "subject_name",
+    "nm_id",
+    "barcode",
+    "supplier_oper_name",
+    "quantity",
+    "retail_amount",
+    "ppvz_for_pay",
+    "delivery_rub",
+    "penalty",
+    "additional_payment",
+    "storage_fee",
+    "deduction",
+    "acquiring_fee",
+    "acceptance",
+    "payment_processing",
+    "cashback_amount",
+    "seller_promo_discount",
+    "loyalty_discount",
+  ];
+
+  const rows = Array.from({ length: rowCount }, (_, index) => {
+    const number = index + 1;
+
+    return [
+      "300000009",
+      "2026-07-01",
+      "2026-07-31",
+      "RUB",
+      `Тестовый товар ${number}`,
+      `${710000000 + number}`,
+      `SYNTH-LARGE-${number.toString().padStart(3, "0")}`,
+      "Продажа",
+      "1",
+      "1000",
+      "700",
+      "40",
+      "0",
+      "0",
+      "10",
+      "0",
+      "15",
+      "0",
+      "5",
+      "0",
+      "0",
+      "0",
+    ].join(",");
+  });
+
+  return [header.join(","), ...rows].join("\n");
+}
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
@@ -305,6 +363,13 @@ describe("ReportUpload", () => {
     expect(
       screen
         .getByRole("link", {
+          name: "WB CSV — большой файл для проверки таблицы",
+        })
+        .getAttribute("href"),
+    ).toBe("/demo/wb-finance-large-preview.csv");
+    expect(
+      screen
+        .getByRole("link", {
           name: "WB XLSX — товарный каталог для проверки ошибки",
         })
         .getAttribute("href"),
@@ -369,6 +434,61 @@ describe("ReportUpload", () => {
     expect(
       summary.getByText("Удержания WB").nextElementSibling?.textContent,
     ).toBe("1 834 ₽");
+  });
+
+  it("keeps a large CSV report readable through desktop and mobile result views", async () => {
+    const user = userEvent.setup();
+    const file = new File(
+      [buildLargeWildberriesFinanceCsv(36)],
+      "wb-large-finance.csv",
+      {
+        type: "text/csv",
+      },
+    );
+
+    render(<ReportUpload />);
+
+    await user.upload(
+      screen.getByLabelText("Выбрать отчёт с устройства", { exact: false }),
+      file,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Проверить отчёт локально" }),
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Отчёт WB прочитан и сверен",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByText("36 операций")).toBeTruthy();
+    expect(screen.getByText("36 SKU")).toBeTruthy();
+    expect(screen.getAllByTestId("analysis-mobile-card")).toHaveLength(36);
+
+    const desktopTable = screen.getByRole("table", {
+      name: "Оценка результата по товарам Wildberries",
+    });
+    expect(
+      within(desktopTable).getByRole("rowheader", {
+        name: /Тестовый товар 36/,
+      }),
+    ).toBeTruthy();
+
+    await user.type(
+      screen.getByLabelText(
+        "Себестоимость одной единицы для Тестовый товар 1, ₽",
+      ),
+      "600",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Пересчитать прибыль" }),
+    );
+
+    expect(
+      screen.getByText(
+        "Себестоимость учтена для 1 из 36 SKU. Результат ниже обновлён.",
+      ),
+    ).toBeTruthy();
   });
 
   it("keeps the previous calculation when a cost is invalid", async () => {
