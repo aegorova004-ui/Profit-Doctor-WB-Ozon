@@ -119,6 +119,13 @@ Prisma schema содержит:
 - `401` для невалидного login code без раскрытия причины;
 - стабильные пользовательские сообщения для UI.
 
+`src/server/auth-rate-limit.ts` содержит rate-limit policy для будущих auth route handlers:
+
+- не более 3 запросов login code за 15 минут;
+- не более 5 попыток проверки login code за 15 минут;
+- rolling-window расчёт `retryAfterSeconds`;
+- отказ от невалидной policy на уровне helper.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -189,11 +196,20 @@ Prisma schema содержит:
 - mapping validation errors в `400`;
 - единый `401 invalid_code` для неверного, истёкшего или уже использованного кода.
 
+`src/server/auth-rate-limit.test.ts` покрывает:
+
+- разрешение действия при свободных попытках;
+- блокировку при исчерпанном лимите;
+- игнорирование событий вне rolling window;
+- отдельную policy для проверки кода;
+- отказ для невалидной policy.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
 - Подключить `requestLoginCode` и `verifyLoginCodeAndCreateSession` к Next route handlers.
 - Подключить `resolveCurrentUserFromCookies` к Next route handlers.
+- Подключить `checkAuthRateLimit` к request/verify endpoints до обращения к email provider или проверки кода.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
 - Описать срок хранения исходных файлов и механизм удаления, если продукт решит сохранять файлы.
