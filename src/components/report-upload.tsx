@@ -14,10 +14,11 @@ import {
 } from "@/domain/reports/diagnose-report";
 import { parseCsvRows } from "@/domain/reports/csv";
 import {
-  DEMO_TEMPLATE_LINKS,
   OZON_CSV_DEMO_REPORT,
+  PUBLIC_DEMO_TEMPLATE_LINKS,
   WB_CSV_DEMO_REPORT,
   WB_XLSX_DEMO_REPORT,
+  WORKING_DEMO_TEMPLATE_LINKS,
 } from "@/domain/reports/demo-fixtures";
 import { detectReportMarketplace } from "@/domain/reports/detect-marketplace";
 import {
@@ -198,7 +199,7 @@ function buildDiagnosticFromColumns(
       missing.length > 0
         ? missing
         : ["Поддерживаемая строка заголовков финансового отчёта"],
-    templateLinks: DEMO_TEMPLATE_LINKS,
+    templateLinks: WORKING_DEMO_TEMPLATE_LINKS,
   };
 }
 
@@ -230,7 +231,7 @@ async function buildUploadDiagnostic(
         "Не удалось безопасно прочитать заголовки файла. Попробуйте сохранить отчёт заново или сравнить его с демо-шаблоном.",
       foundColumns: [],
       missingColumns: ["Поддерживаемая строка заголовков финансового отчёта"],
-      templateLinks: DEMO_TEMPLATE_LINKS,
+      templateLinks: WORKING_DEMO_TEMPLATE_LINKS,
     };
   }
 }
@@ -1347,7 +1348,7 @@ export function ReportUpload() {
           <p>Все файлы синтетические. Можно скачать и загрузить вручную.</p>
         </div>
         <ul>
-          {DEMO_TEMPLATE_LINKS.map((template) => (
+          {PUBLIC_DEMO_TEMPLATE_LINKS.map((template) => (
             <li key={template.href}>
               <a href={template.href} download>
                 {template.description}

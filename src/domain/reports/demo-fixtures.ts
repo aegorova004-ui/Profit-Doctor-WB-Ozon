@@ -28,7 +28,7 @@ export const OZON_CSV_DEMO_REPORT: DemoReportAction = {
   mimeType: "text/csv",
 };
 
-export const DEMO_TEMPLATE_LINKS = [
+export const WORKING_DEMO_TEMPLATE_LINKS = [
   {
     href: WB_XLSX_DEMO_REPORT.href,
     label: "WB XLSX demo",
@@ -45,6 +45,14 @@ export const DEMO_TEMPLATE_LINKS = [
     description: "WB CSV — большой файл для проверки таблицы",
   },
   {
+    href: OZON_CSV_DEMO_REPORT.href,
+    label: "Ozon CSV demo",
+    description: "Ozon CSV — рабочий preview finance",
+  },
+] as const;
+
+export const NEGATIVE_DEMO_TEMPLATE_LINKS = [
+  {
     href: "/demo/wb-product-catalog-not-finance.xlsx",
     label: "WB catalog XLSX negative demo",
     description: "WB XLSX — товарный каталог для проверки ошибки",
@@ -54,13 +62,13 @@ export const DEMO_TEMPLATE_LINKS = [
     label: "Unsupported CSV negative demo",
     description: "CSV — неизвестный формат для проверки ошибки",
   },
-  {
-    href: OZON_CSV_DEMO_REPORT.href,
-    label: "Ozon CSV demo",
-    description: "Ozon CSV — рабочий preview finance",
-  },
 ] as const;
 
-export const PUBLIC_DEMO_FILE_NAMES = DEMO_TEMPLATE_LINKS.map((template) =>
-  template.href.replace("/demo/", ""),
+export const PUBLIC_DEMO_TEMPLATE_LINKS = [
+  ...WORKING_DEMO_TEMPLATE_LINKS,
+  ...NEGATIVE_DEMO_TEMPLATE_LINKS,
+] as const;
+
+export const PUBLIC_DEMO_FILE_NAMES = PUBLIC_DEMO_TEMPLATE_LINKS.map(
+  (template) => template.href.replace("/demo/", ""),
 );
