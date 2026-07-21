@@ -15,7 +15,9 @@ function detectDelimiter(firstLine: string): string {
 }
 
 export function parseCsvRows(text: string): CsvRow[] {
-  const delimiter = detectDelimiter(text.split(/\r?\n/, 1)[0] ?? "");
+  const delimiter = detectDelimiter(
+    text.split(/\r?\n/).find((line) => line.trim() !== "") ?? "",
+  );
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = "";

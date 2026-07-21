@@ -113,6 +113,49 @@ describe("Ozon finance CSV preview parser", () => {
     ]);
   });
 
+  it("accepts UTF-8 BOM and semicolon-separated Ozon CSV exports", () => {
+    const report = parseOzonFinanceCsvText(
+      `\uFEFF${HEADERS.join(";")}\n${makeRow().join(";")}`,
+    );
+
+    expect(report.rows).toHaveLength(1);
+    expect(report.rows[0]).toMatchObject({
+      sku: "100000001",
+      revenueKopecks: 100_000,
+    });
+  });
+
+  it("rejects duplicate columns before reading Ozon financial rows", () => {
+    expect(() =>
+      parseOzonFinanceCsvRows([
+        [...HEADERS, "offer_id"],
+        [...makeRow(), "OZON-DUPLICATE"],
+      ]),
+    ).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "DUPLICATE_COLUMN",
+      }),
+    );
+  });
+
+  it("rejects oversized Ozon CSV tables before parsing money", () => {
+    expect(() =>
+      parseOzonFinanceCsvRows(Array.from({ length: 100_021 }, () => [""])),
+    ).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "TOO_MANY_ROWS",
+      }),
+    );
+
+    expect(() =>
+      parseOzonFinanceCsvRows([Array.from({ length: 81 }, () => "")]),
+    ).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "TOO_MANY_COLUMNS",
+      }),
+    );
+  });
+
   it("rejects unsupported Ozon service operation with SKU instead of guessing allocation", () => {
     expect(() =>
       parseOzonFinanceCsvRows([

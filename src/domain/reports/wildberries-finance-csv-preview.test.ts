@@ -129,6 +129,51 @@ describe("Wildberries finance CSV preview parser", () => {
     expect(report.formatVersion).toBe(WB_FINANCE_CSV_PREVIEW_FORMAT_VERSION);
   });
 
+  it("accepts UTF-8 BOM and tab-separated WB CSV exports", () => {
+    const report = parseWildberriesFinanceCsvText(
+      `\uFEFF${HEADERS.join("\t")}\n${makeRow().join("\t")}`,
+    );
+
+    expect(report.rows).toHaveLength(1);
+    expect(report.rows[0]).toMatchObject({
+      sku: "SYNTH-1",
+      revenueKopecks: 100_000,
+    });
+  });
+
+  it("rejects duplicate columns before reading financial rows", () => {
+    expect(() =>
+      parseWildberriesFinanceCsvRows([
+        [...HEADERS, "barcode"],
+        [...makeRow(), "SYNTH-DUPLICATE"],
+      ]),
+    ).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "DUPLICATE_COLUMN",
+      }),
+    );
+  });
+
+  it("rejects oversized CSV tables before trying to classify operations", () => {
+    expect(() =>
+      parseWildberriesFinanceCsvRows(
+        Array.from({ length: 100_021 }, () => [""]),
+      ),
+    ).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "TOO_MANY_ROWS",
+      }),
+    );
+
+    expect(() =>
+      parseWildberriesFinanceCsvRows([Array.from({ length: 121 }, () => "")]),
+    ).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "TOO_MANY_COLUMNS",
+      }),
+    );
+  });
+
   it("rejects a service-only public WB finance CSV instead of spreading it over SKU", () => {
     expect(() =>
       parseWildberriesFinanceCsvRows([
