@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ProfitDoctorMascot } from "@/components/profit-doctor-mascot";
+import { publicPath } from "@/lib/public-path";
 
 const audiences = [
   {
@@ -354,7 +355,7 @@ export default function Home() {
             <figure className="diagnostic-visual">
               <Image
                 className="diagnostic-visual-image"
-                src="/images/profit-diagnostic-card.png"
+                src={publicPath("/images/profit-diagnostic-card.png")}
                 alt="Учебная диагностика магазина: выручка 416 860 ₽, прибыль 17 800 ₽, маржа 4,3%"
                 width={1128}
                 height={1394}
