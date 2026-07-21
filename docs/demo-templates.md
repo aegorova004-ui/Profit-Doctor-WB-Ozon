@@ -13,7 +13,7 @@
 | `wb-financial-report-preview.xlsx` | `/demo/wb-financial-report-preview.xlsx` | Рабочий WB XLSX preview: продажи, возврат, логистика, хранение, ручная себестоимость, диагноз, экспорт.                                       |
 | `wb-finance-api-preview.csv`       | `/demo/wb-finance-api-preview.csv`       | Рабочий WB finance CSV preview: `supplier_oper_name`, продажи, возврат, дополнительные удержания, сервисная строка без SKU с предупреждением. |
 | `wb-finance-large-preview.csv`     | `/demo/wb-finance-large-preview.csv`     | Большой WB finance CSV preview: 36 товарных SKU для проверки прокрутки, мобильных карточек, повторного пересчёта и экспорта.                  |
-| `ozon-finance-preview.csv`         | `/demo/ozon-finance-preview.csv`         | Ozon CSV-шаблон для следующего адаптера. Сейчас нужен как контрактная заготовка и ручной пример, не как поддерживаемый импорт.                |
+| `ozon-finance-preview.csv`         | `/demo/ozon-finance-preview.csv`         | Рабочий Ozon finance CSV preview: продажи, возврат, комиссия, логистика, обработка отправления и прочие услуги.                               |
 
 ## Шаблон для проверки ошибки
 
@@ -27,4 +27,4 @@
 2. `wb-finance-api-preview.csv` открывается кнопкой «Открыть демо CSV WB» и показывает 3 операции, 2 SKU, а также предупреждение про сервисную строку без SKU.
 3. `wb-finance-large-preview.csv`, если скачать и выбрать вручную, показывает 36 операций и 36 SKU; страница должна свободно прокручиваться, а мобильная версия должна показывать карточки без горизонтального чтения.
 4. `wb-product-catalog-not-finance.xlsx`, если выбрать его вручную, не считается отчётом и показывает ошибку: «Похоже, выбран товарный каталог Wildberries».
-5. `ozon-finance-preview.csv` пока не обязан импортироваться: это шаблон для следующего Ozon-адаптера.
+5. `ozon-finance-preview.csv` открывается кнопкой «Открыть демо CSV Ozon» и показывает 4 операции, 3 SKU.

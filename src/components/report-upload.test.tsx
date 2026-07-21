@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -113,7 +113,7 @@ describe("ReportUpload", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Отчёт WB прочитан и сверен",
+        name: "Отчёт WB прочитан локально",
       }),
     ).toBeTruthy();
     const summary = within(screen.getByTestId("analysis-summary"));
@@ -169,7 +169,7 @@ describe("ReportUpload", () => {
     ).toBe("77,50 ₽");
     expect(screen.getByText("2 убыточных SKU")).toBeTruthy();
     const desktopTable = screen.getByRole("table", {
-      name: "Оценка результата по товарам Wildberries",
+      name: "Оценка результата по товарам WB",
     });
     expect(within(desktopTable).getAllByText("Убыток")).toHaveLength(2);
     expect(within(desktopTable).getAllByText("Пока в плюсе")).toHaveLength(1);
@@ -294,7 +294,7 @@ describe("ReportUpload", () => {
     );
     expect(
       await screen.findByRole("heading", {
-        name: "Отчёт WB прочитан и сверен",
+        name: "Отчёт WB прочитан локально",
       }),
     ).toBeTruthy();
     expect(
@@ -339,12 +339,52 @@ describe("ReportUpload", () => {
     });
     expect(
       await screen.findByRole("heading", {
-        name: "Отчёт WB прочитан и сверен",
+        name: "Отчёт WB прочитан локально",
       }),
     ).toBeTruthy();
     expect(screen.getByText("profit-doctor-demo-wb-finance.csv")).toBeTruthy();
     expect(screen.getByText("3 операций")).toBeTruthy();
     expect(screen.getByText("2 SKU")).toBeTruthy();
+  });
+
+  it("opens the bundled Ozon demo CSV report without a manual file upload", async () => {
+    const user = userEvent.setup();
+    const csv = await readFile(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../public/demo/ozon-finance-preview.csv",
+      ),
+      "utf8",
+    );
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      text: async () => csv,
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<ReportUpload />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Открыть демо CSV Ozon" }),
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith("/demo/ozon-finance-preview.csv", {
+      cache: "no-store",
+    });
+    expect(
+      await screen.findByRole("heading", {
+        name: "Отчёт Ozon прочитан локально",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("profit-doctor-demo-ozon-finance.csv"),
+    ).toBeTruthy();
+    expect(screen.getByText("4 операций")).toBeTruthy();
+    expect(screen.getByText("3 SKU")).toBeTruthy();
+    const summary = within(screen.getByTestId("analysis-summary"));
+    expect(
+      summary.getByText("Удержания Ozon").nextElementSibling?.textContent,
+    ).toBe("4 066 ₽");
   });
 
   it("shows direct links to all synthetic demo templates", () => {
@@ -377,7 +417,7 @@ describe("ReportUpload", () => {
     expect(
       screen
         .getByRole("link", {
-          name: "Ozon CSV — шаблон для следующего адаптера",
+          name: "Ozon CSV — рабочий preview finance",
         })
         .getAttribute("href"),
     ).toBe("/demo/ozon-finance-preview.csv");
@@ -405,7 +445,7 @@ describe("ReportUpload", () => {
 
     expect(
       screen.getByText(
-        "CSV будет разобран preview-адаптером WB finance. Если в файле есть только сервисные строки без SKU, расчёт остановится с объяснением.",
+        "CSV будет разобран preview-адаптером WB или Ozon по заголовкам. Если в файле есть только сервисные строки без SKU, расчёт остановится с объяснением.",
       ),
     ).toBeTruthy();
     const analyzeButton = screen.getByRole("button", {
@@ -417,7 +457,7 @@ describe("ReportUpload", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Отчёт WB прочитан и сверен",
+        name: "Отчёт WB прочитан локально",
       }),
     ).toBeTruthy();
     expect(screen.getByText("3 операций")).toBeTruthy();
@@ -458,7 +498,7 @@ describe("ReportUpload", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Отчёт WB прочитан и сверен",
+        name: "Отчёт WB прочитан локально",
       }),
     ).toBeTruthy();
     expect(screen.getByText("36 операций")).toBeTruthy();
@@ -466,7 +506,7 @@ describe("ReportUpload", () => {
     expect(screen.getAllByTestId("analysis-mobile-card")).toHaveLength(36);
 
     const desktopTable = screen.getByRole("table", {
-      name: "Оценка результата по товарам Wildberries",
+      name: "Оценка результата по товарам WB",
     });
     expect(
       within(desktopTable).getByRole("rowheader", {
@@ -512,7 +552,7 @@ describe("ReportUpload", () => {
       screen.getByRole("button", { name: "Проверить отчёт локально" }),
     );
     await screen.findByRole("heading", {
-      name: "Отчёт WB прочитан и сверен",
+      name: "Отчёт WB прочитан локально",
     });
     const summary = within(screen.getByTestId("analysis-summary"));
 
