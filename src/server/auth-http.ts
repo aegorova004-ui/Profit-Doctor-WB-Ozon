@@ -1,6 +1,8 @@
+import type { AuthRateLimitDecision } from "./auth-rate-limit";
 import type { AuthValidationErrorCode } from "./auth-validation";
 
-export type AuthHttpErrorCode = AuthValidationErrorCode | "invalid_code";
+export type AuthHttpErrorCode =
+  AuthValidationErrorCode | "invalid_code" | "rate_limited";
 
 export type AuthHttpResponseBody =
   | {
@@ -11,6 +13,7 @@ export type AuthHttpResponseBody =
       ok: false;
       error: AuthHttpErrorCode;
       message: string;
+      retryAfterSeconds?: number;
     };
 
 export type AuthHttpResponse = {
@@ -59,6 +62,14 @@ const ERROR_RESPONSES: Record<AuthHttpErrorCode, AuthHttpResponse> = {
       message: "Код не подошёл. Проверьте письмо или запросите новый код.",
     },
   },
+  rate_limited: {
+    status: 429,
+    body: {
+      ok: false,
+      error: "rate_limited",
+      message: "Слишком много попыток. Попробуйте позже.",
+    },
+  },
 };
 
 export function authSuccess(message: string): AuthHttpResponse {
@@ -73,4 +84,18 @@ export function authSuccess(message: string): AuthHttpResponse {
 
 export function authError(error: AuthHttpErrorCode): AuthHttpResponse {
   return ERROR_RESPONSES[error];
+}
+
+export function authRateLimitError(
+  decision: Extract<AuthRateLimitDecision, { allowed: false }>,
+): AuthHttpResponse {
+  return {
+    status: 429,
+    body: {
+      ok: false,
+      error: "rate_limited",
+      message: "Слишком много попыток. Попробуйте позже.",
+      retryAfterSeconds: decision.retryAfterSeconds,
+    },
+  };
 }

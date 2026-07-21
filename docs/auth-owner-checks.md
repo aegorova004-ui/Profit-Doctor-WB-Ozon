@@ -117,6 +117,7 @@ Prisma schema содержит:
 
 - `400` для некорректного email или формата кода;
 - `401` для невалидного login code без раскрытия причины;
+- `429 rate_limited` для превышения лимита с публичным `retryAfterSeconds`;
 - стабильные пользовательские сообщения для UI.
 
 `src/server/auth-rate-limit.ts` содержит rate-limit policy для будущих auth route handlers:
@@ -194,7 +195,8 @@ Prisma schema содержит:
 
 - успешный auth-ответ;
 - mapping validation errors в `400`;
-- единый `401 invalid_code` для неверного, истёкшего или уже использованного кода.
+- единый `401 invalid_code` для неверного, истёкшего или уже использованного кода;
+- `429 rate_limited` и задержку повтора без раскрытия внутренних деталей лимита.
 
 `src/server/auth-rate-limit.test.ts` покрывает:
 

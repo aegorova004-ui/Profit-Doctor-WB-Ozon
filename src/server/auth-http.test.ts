@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { type AuthHttpErrorCode, authError, authSuccess } from "./auth-http";
+import {
+  type AuthHttpErrorCode,
+  authError,
+  authRateLimitError,
+  authSuccess,
+} from "./auth-http";
 
 describe("authSuccess", () => {
   it("returns a stable success response", () => {
@@ -45,6 +50,11 @@ describe("authError", () => {
       status: 401,
       message: "Код не подошёл. Проверьте письмо или запросите новый код.",
     },
+    {
+      error: "rate_limited",
+      status: 429,
+      message: "Слишком много попыток. Попробуйте позже.",
+    },
   ])(
     "maps $error to a stable public response",
     ({ error, status, message }) => {
@@ -58,4 +68,24 @@ describe("authError", () => {
       });
     },
   );
+});
+
+describe("authRateLimitError", () => {
+  it("returns retry delay without exposing rate-limit internals", () => {
+    expect(
+      authRateLimitError({
+        allowed: false,
+        remainingAttempts: 0,
+        retryAfterSeconds: 42,
+      }),
+    ).toEqual({
+      status: 429,
+      body: {
+        ok: false,
+        error: "rate_limited",
+        message: "Слишком много попыток. Попробуйте позже.",
+        retryAfterSeconds: 42,
+      },
+    });
+  });
 });

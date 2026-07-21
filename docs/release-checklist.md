@@ -44,7 +44,7 @@
 - [ ] Auth-flow отдаёт plaintext login code только email/OTP delivery provider и не возвращает его клиенту.
 - [ ] Auth route payload валидируется до обращения к Prisma или email provider.
 - [ ] Невалидный, истёкший и уже использованный login code дают одинаковый публичный ответ.
-- [ ] Auth endpoints ограничивают частоту запроса и проверки login code до обращения к provider/Prisma.
+- [ ] Auth endpoints ограничивают частоту запроса и проверки login code до обращения к provider/Prisma и возвращают `429 rate_limited` с `retryAfterSeconds`.
 - [ ] Срок хранения исходных файлов и удаление проверены.
 - [ ] Платёжный статус подтверждается на сервере; webhook защищён от повтора и подделки.
 
