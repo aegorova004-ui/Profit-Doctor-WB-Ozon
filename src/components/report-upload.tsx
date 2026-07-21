@@ -47,6 +47,22 @@ function marketplaceShortName(marketplace: ParsedReport["marketplace"]) {
   return marketplace === "wildberries" ? "WB" : "Ozon";
 }
 
+function adapterDisplayName(report: ParsedReport): string {
+  if (report.formatVersion === "wb:api-financial-report:preview-2026-07") {
+    return "WB XLSX API preview";
+  }
+
+  if (report.formatVersion === "wb:finance-report:api-csv:preview-2026-07") {
+    return "WB CSV finance preview";
+  }
+
+  if (report.formatVersion === "ozon:finance-report:csv:preview-2026-07") {
+    return "Ozon CSV finance preview";
+  }
+
+  return "Preview-адаптер";
+}
+
 async function parseSupportedCsvPreviewFile(file: Blob): Promise<ParsedReport> {
   const text = await file.text();
   const rows = parseCsvRows(text);
@@ -82,6 +98,49 @@ type CostEditorProps = {
   onChange: (sku: string, value: string) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
+
+function ImportAdapterStatus({
+  isAnalyzing,
+  report,
+}: {
+  isAnalyzing: boolean;
+  report: ParsedReport | null;
+}) {
+  if (isAnalyzing) {
+    return (
+      <section
+        className="import-adapter-status import-adapter-status-pending"
+        aria-label="Статус определения адаптера отчёта"
+      >
+        <span>Определяем адаптер</span>
+        <strong>Проверяем заголовки и структуру файла</strong>
+        <p>Файл остаётся в браузере; на сервер ничего не отправляется.</p>
+      </section>
+    );
+  }
+
+  if (!report) {
+    return null;
+  }
+
+  const marketplaceName = marketplaceShortName(report.marketplace);
+
+  return (
+    <section
+      className="import-adapter-status"
+      aria-label="Распознанный адаптер отчёта"
+      data-testid="import-adapter-status"
+    >
+      <span>Распознан адаптер</span>
+      <strong>
+        {marketplaceName} · {adapterDisplayName(report)}
+      </strong>
+      <p>
+        Версия: <code>{report.formatVersion}</code>
+      </p>
+    </section>
+  );
+}
 
 function CostEditor({
   report,
@@ -1089,6 +1148,8 @@ export function ReportUpload() {
         Анализ выполняется в этом браузере. Файл не отправляется и не хранится
         на сервере
       </p>
+
+      <ImportAdapterStatus isAnalyzing={isAnalyzing} report={report} />
 
       {report && (
         <CostEditor

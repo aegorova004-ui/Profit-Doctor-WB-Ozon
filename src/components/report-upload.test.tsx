@@ -131,6 +131,12 @@ describe("ReportUpload", () => {
     ).toBe("3 777,50 ₽");
     expect(screen.getByText("4 операций")).toBeTruthy();
     expect(screen.getByText("3 SKU")).toBeTruthy();
+    const adapterStatus = within(screen.getByTestId("import-adapter-status"));
+    expect(adapterStatus.getByText("Распознан адаптер")).toBeTruthy();
+    expect(adapterStatus.getByText("WB · WB XLSX API preview")).toBeTruthy();
+    expect(
+      adapterStatus.getByText("wb:api-financial-report:preview-2026-07"),
+    ).toBeTruthy();
 
     await user.click(
       screen.getByRole("button", { name: "Пересчитать прибыль" }),
@@ -375,6 +381,13 @@ describe("ReportUpload", () => {
       await screen.findByRole("heading", {
         name: "Отчёт Ozon прочитан локально",
       }),
+    ).toBeTruthy();
+    const adapterStatus = within(screen.getByTestId("import-adapter-status"));
+    expect(
+      adapterStatus.getByText("Ozon · Ozon CSV finance preview"),
+    ).toBeTruthy();
+    expect(
+      adapterStatus.getByText("ozon:finance-report:csv:preview-2026-07"),
     ).toBeTruthy();
     expect(
       screen.getByText("profit-doctor-demo-ozon-finance.csv"),

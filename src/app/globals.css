@@ -2212,6 +2212,53 @@ tbody tr:hover {
   background: #e7f8dd;
 }
 
+.import-adapter-status {
+  display: grid;
+  gap: 7px;
+  margin-top: 24px;
+  padding: 16px 18px;
+  color: #0e1a15;
+  border: 1px solid #cfdfc8;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(166, 233, 90, 0.18), transparent 55%), #f8fbf5;
+}
+
+.import-adapter-status span {
+  color: #3b744b;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.import-adapter-status strong {
+  font-size: clamp(17px, 2vw, 21px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.import-adapter-status p {
+  margin: 0;
+  color: #53635a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.import-adapter-status code {
+  padding: 2px 6px;
+  color: #245333;
+  border-radius: 999px;
+  background: #eef5e9;
+  font-family: var(--font-mono), "SFMono-Regular", Consolas, monospace;
+  font-size: 0.94em;
+}
+
+.import-adapter-status-pending {
+  border-color: #dbe9d4;
+  background: #f4faef;
+}
+
 .demo-templates {
   display: grid;
   gap: 14px;
