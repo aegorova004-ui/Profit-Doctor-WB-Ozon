@@ -77,7 +77,7 @@ CI запускает эти проверки, а также валидацию 
 3. Создайте ветку `codex/<краткое-имя>` и отдельный PR.
 4. Запустите релевантные проверки и обновите документацию.
 
-Финансовые правила описаны в [`docs/finance-formulas.md`](docs/finance-formulas.md), контракт импорта — в [`docs/report-formats.md`](docs/report-formats.md), текущий план — в [`docs/sprint-1-plan.md`](docs/sprint-1-plan.md), подготовка релиза — в [`docs/release-checklist.md`](docs/release-checklist.md).
+Финансовые правила описаны в [`docs/finance-formulas.md`](docs/finance-formulas.md), контракт импорта — в [`docs/report-formats.md`](docs/report-formats.md), текущий план — в [`docs/sprint-1-plan.md`](docs/sprint-1-plan.md), следующий план — в [`docs/sprint-2-plan.md`](docs/sprint-2-plan.md), подготовка релиза — в [`docs/release-checklist.md`](docs/release-checklist.md).
 
 ## Важные ограничения
 
