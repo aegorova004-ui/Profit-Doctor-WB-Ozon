@@ -4,8 +4,11 @@ import {
   parseInteger,
   parseRublesToKopecks,
 } from "./decimal";
+import { parseCsvRows } from "./csv";
 import type { NormalizedReportRow, ParsedReport, ParseWarning } from "./parser";
 import { ReportParseError } from "./wildberries-api-preview";
+
+export { parseCsvRows } from "./csv";
 
 export const WB_FINANCE_CSV_PREVIEW_FORMAT_VERSION =
   "wb:finance-report:api-csv:preview-2026-07";
@@ -62,66 +65,8 @@ function normalizeHeader(value: string | undefined): string {
   return (value ?? "").trim().toLocaleLowerCase("ru-RU");
 }
 
-function isEmptyRow(row: CsvRow): boolean {
+function isEmptyReportRow(row: CsvRow): boolean {
   return row.every((cell) => cell.trim() === "");
-}
-
-function detectDelimiter(firstLine: string): string {
-  const candidates = [",", ";", "\t"] as const;
-  return candidates
-    .map((delimiter) => ({
-      delimiter,
-      count: firstLine.split(delimiter).length,
-    }))
-    .sort((left, right) => right.count - left.count)[0].delimiter;
-}
-
-export function parseCsvRows(text: string): CsvRow[] {
-  const delimiter = detectDelimiter(text.split(/\r?\n/, 1)[0] ?? "");
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = "";
-  let insideQuotes = false;
-
-  for (let index = 0; index < text.length; index += 1) {
-    const char = text[index];
-    const next = text[index + 1];
-
-    if (char === '"') {
-      if (insideQuotes && next === '"') {
-        cell += '"';
-        index += 1;
-      } else {
-        insideQuotes = !insideQuotes;
-      }
-      continue;
-    }
-
-    if (!insideQuotes && char === delimiter) {
-      row.push(cell);
-      cell = "";
-      continue;
-    }
-
-    if (!insideQuotes && (char === "\n" || char === "\r")) {
-      row.push(cell);
-      rows.push(row);
-      row = [];
-      cell = "";
-
-      if (char === "\r" && next === "\n") {
-        index += 1;
-      }
-      continue;
-    }
-
-    cell += char;
-  }
-
-  row.push(cell);
-  rows.push(row);
-
-  return rows.filter((candidate) => !isEmptyRow(candidate));
 }
 
 function findHeaderRow(rows: readonly CsvRow[]): number {
@@ -372,7 +317,7 @@ export function parseWildberriesFinanceCsvRows(
 
   for (let index = headerIndex + 1; index < rawRows.length; index += 1) {
     const row = rawRows[index];
-    if (isEmptyRow(row)) {
+    if (isEmptyReportRow(row)) {
       continue;
     }
 

@@ -11,13 +11,11 @@ import {
   type ExpenseDriver,
   type SkuDiagnosis,
 } from "@/domain/reports/diagnose-report";
+import { parseCsvRows } from "@/domain/reports/csv";
 import { detectReportMarketplace } from "@/domain/reports/detect-marketplace";
 import { parseOzonFinanceCsvText } from "@/domain/reports/ozon-finance-csv-preview";
 import type { ParsedReport } from "@/domain/reports/parser";
-import {
-  parseCsvRows,
-  parseWildberriesFinanceCsvText,
-} from "@/domain/reports/wildberries-finance-csv-preview";
+import { parseWildberriesFinanceCsvText } from "@/domain/reports/wildberries-finance-csv-preview";
 import {
   parseWildberriesApiPreviewWorkbook,
   ReportParseError,

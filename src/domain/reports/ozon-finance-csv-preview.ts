@@ -4,8 +4,8 @@ import {
   parseInteger,
   parseRublesToKopecks,
 } from "./decimal";
+import { parseCsvRows } from "./csv";
 import type { NormalizedReportRow, ParsedReport, ParseWarning } from "./parser";
-import { parseCsvRows } from "./wildberries-finance-csv-preview";
 import { ReportParseError } from "./wildberries-api-preview";
 
 export const OZON_FINANCE_CSV_PREVIEW_FORMAT_VERSION =
