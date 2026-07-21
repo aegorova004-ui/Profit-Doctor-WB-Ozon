@@ -101,6 +101,13 @@ Prisma schema содержит:
 - возвращает текущего пользователя и единую cookie policy;
 - не обращается к repository, если session cookie отсутствует.
 
+`src/server/auth-validation.ts` содержит validation слой для будущих auth route handlers:
+
+- нормализацию и проверку email;
+- проверку шестизначного login code;
+- проверку request payload для выпуска кода;
+- проверку verify payload для погашения кода.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -158,11 +165,19 @@ Prisma schema содержит:
 - резолв текущего пользователя через hash lookup;
 - возврат единой cookie policy.
 
+`src/server/auth-validation.test.ts` покрывает:
+
+- нормализацию валидного email;
+- отказ для пустого, нестрокового, слишком длинного и некорректного email;
+- отказ для пустого и некорректного login code;
+- нормализацию request/verify payload.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
 - Подключить `requestLoginCode` и `verifyLoginCodeAndCreateSession` к Next route handlers.
 - Подключить `resolveCurrentUserFromCookies` к Next route handlers.
+- Смаппить `AuthValidationErrorCode` в понятные HTTP-ответы и UI-сообщения.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
 - Описать срок хранения исходных файлов и механизм удаления, если продукт решит сохранять файлы.
