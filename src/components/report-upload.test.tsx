@@ -278,7 +278,7 @@ describe("ReportUpload", () => {
     render(<ReportUpload />);
 
     await user.click(
-      screen.getByRole("button", { name: "Открыть демо XLSX WB" }),
+      screen.getByRole("button", { name: "Посмотреть демо на примере" }),
     );
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -325,7 +325,7 @@ describe("ReportUpload", () => {
     render(<ReportUpload />);
 
     await user.click(
-      screen.getByRole("button", { name: "Открыть демо XLSX WB" }),
+      screen.getByRole("button", { name: "Посмотреть демо на примере" }),
     );
     await screen.findByRole("heading", {
       name: "Отчёт WB прочитан локально",
@@ -340,44 +340,7 @@ describe("ReportUpload", () => {
     ).toBeTruthy();
   });
 
-  it("opens the bundled demo CSV report without a manual file upload", async () => {
-    const user = userEvent.setup();
-    const csv = await readFile(
-      path.resolve(
-        path.dirname(fileURLToPath(import.meta.url)),
-        "../../tests/fixtures/reports/wb-finance-api-public-like.csv",
-      ),
-      "utf8",
-    );
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      text: async () => csv,
-    }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    render(<ReportUpload />);
-
-    await user.click(
-      screen.getByRole("button", { name: "Открыть демо CSV WB" }),
-    );
-
-    expect(fetchMock).toHaveBeenCalledWith("/demo/wb-finance-api-preview.csv", {
-      cache: "no-store",
-    });
-    expect(
-      await screen.findByRole("heading", {
-        name: "Отчёт WB прочитан локально",
-      }),
-    ).toBeTruthy();
-    expect(screen.getByText("profit-doctor-demo-wb-finance.csv")).toBeTruthy();
-    expect(
-      screen.getByText("Демо CSV WB открыт. Результат ниже обновлён."),
-    ).toBeTruthy();
-    expect(screen.getByText("3 операций")).toBeTruthy();
-    expect(screen.getByText("2 SKU")).toBeTruthy();
-  });
-
-  it("opens the bundled Ozon demo CSV report without a manual file upload", async () => {
+  it("analyzes an Ozon finance CSV preview report", async () => {
     const user = userEvent.setup();
     const csv = await readFile(
       path.resolve(
@@ -386,33 +349,27 @@ describe("ReportUpload", () => {
       ),
       "utf8",
     );
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      text: async () => csv,
-    }));
-    vi.stubGlobal("fetch", fetchMock);
+    const file = new File([csv], "ozon-finance.csv", {
+      type: "text/csv",
+    });
 
     render(<ReportUpload />);
 
+    await user.upload(
+      screen.getByLabelText("Выбрать отчёт с устройства", { exact: false }),
+      file,
+    );
     await user.click(
-      screen.getByRole("button", { name: "Открыть демо CSV Ozon" }),
+      screen.getByRole("button", { name: "Проверить отчёт локально" }),
     );
 
-    expect(fetchMock).toHaveBeenCalledWith("/demo/ozon-finance-preview.csv", {
-      cache: "no-store",
-    });
     expect(
       await screen.findByRole("heading", {
         name: "Отчёт Ozon прочитан локально",
       }),
     ).toBeTruthy();
     expect(screen.queryByTestId("import-adapter-status")).toBeNull();
-    expect(
-      screen.getByText("profit-doctor-demo-ozon-finance.csv"),
-    ).toBeTruthy();
-    expect(
-      screen.getByText("Демо CSV Ozon открыт. Результат ниже обновлён."),
-    ).toBeTruthy();
+    expect(screen.getByText("ozon-finance.csv")).toBeTruthy();
     expect(screen.getByText("4 операций")).toBeTruthy();
     expect(screen.getByText("3 SKU")).toBeTruthy();
     const summary = within(screen.getByTestId("analysis-summary"));
