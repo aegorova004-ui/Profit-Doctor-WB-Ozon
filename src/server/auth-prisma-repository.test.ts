@@ -34,6 +34,12 @@ function createPrismaMock(): AuthPrismaClient {
       updateMany: vi.fn(async () => ({ count: 1 })),
       create: vi.fn(async () => undefined),
     },
+    authRateLimitEvent: {
+      findMany: vi.fn(async () => [
+        { createdAt: new Date("2026-07-21T10:00:00.000Z") },
+      ]),
+      create: vi.fn(async () => undefined),
+    },
   };
 }
 
@@ -165,6 +171,51 @@ describe("createPrismaAuthRepository", () => {
     expect(prisma.authSession.updateMany).toHaveBeenCalledWith({
       where: { tokenHash: "token-hash", revokedAt: null },
       data: { revokedAt },
+    });
+  });
+
+  it("loads auth rate-limit events by email, action and lower bound", async () => {
+    const prisma = createPrismaMock();
+    const repository = createPrismaAuthRepository(prisma);
+    const since = new Date("2026-07-21T09:45:00.000Z");
+
+    const events = await repository.findAuthRateLimitEvents({
+      email: "seller@example.com",
+      action: "request_code",
+      since,
+    });
+
+    expect(prisma.authRateLimitEvent.findMany).toHaveBeenCalledWith({
+      where: {
+        email: "seller@example.com",
+        action: "REQUEST_CODE",
+        createdAt: { gt: since },
+      },
+      orderBy: { createdAt: "asc" },
+      select: { createdAt: true },
+    });
+    expect(events).toEqual([
+      { createdAt: new Date("2026-07-21T10:00:00.000Z") },
+    ]);
+  });
+
+  it("creates auth rate-limit events without storing IP or user agent", async () => {
+    const prisma = createPrismaMock();
+    const repository = createPrismaAuthRepository(prisma);
+    const createdAt = new Date("2026-07-21T10:00:00.000Z");
+
+    await repository.createAuthRateLimitEvent({
+      email: "seller@example.com",
+      action: "verify_code",
+      createdAt,
+    });
+
+    expect(prisma.authRateLimitEvent.create).toHaveBeenCalledWith({
+      data: {
+        email: "seller@example.com",
+        action: "VERIFY_CODE",
+        createdAt,
+      },
     });
   });
 });

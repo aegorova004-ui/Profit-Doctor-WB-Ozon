@@ -36,7 +36,8 @@
 Prisma schema содержит:
 
 - `LoginCode` — одноразовый код входа по email; хранит `email`, `codeHash`, `expiresAt`, `consumedAt`, но не хранит код в открытом виде;
-- `AuthSession` — серверная сессия пользователя; хранит `tokenHash`, `expiresAt`, `revokedAt`, `lastUsedAt`, но не хранит cookie-token в открытом виде.
+- `AuthSession` — серверная сессия пользователя; хранит `tokenHash`, `expiresAt`, `revokedAt`, `lastUsedAt`, но не хранит cookie-token в открытом виде;
+- `AuthRateLimitEvent` — durable event для auth rate-limit; хранит email, действие и время события без IP, user-agent и plaintext-кодов.
 
 `src/server/access-control.ts` содержит:
 
@@ -148,7 +149,7 @@ Prisma schema содержит:
 - rolling-window расчёт `retryAfterSeconds`;
 - отказ от невалидной policy на уровне helper.
 
-`src/server/auth-memory-rate-limit.ts` содержит временный in-memory store событий rate-limit для preview/dev route handlers. Это не production-замена Redis/PostgreSQL rate-limit, потому что память не общая между инстансами.
+Rate-limit события request-code и verify-code хранятся в PostgreSQL через `AuthRateLimitEvent`, а route handlers читают только события внутри нужного rolling window.
 
 `src/server/access-control.test.ts` покрывает:
 
@@ -194,6 +195,7 @@ Prisma schema содержит:
 - выбор минимального набора auth-полей;
 - защиту от обновления revoked-сессий при `markUsed`.
 - revocation auth-сессий без изменения уже revoked-сессий.
+- чтение и запись auth rate-limit events без IP и user-agent.
 
 `src/server/auth-flow.test.ts` покрывает:
 
@@ -243,11 +245,6 @@ Prisma schema содержит:
 - `401 invalid_code` без раскрытия причины;
 - успешную verify-code с session cookie metadata без токена в JSON.
 
-`src/server/auth-memory-rate-limit.test.ts` покрывает:
-
-- раздельные события request-code и verify-code;
-- очистку устаревших событий вне окна хранения.
-
 `src/server/auth-rate-limit.test.ts` покрывает:
 
 - разрешение действия при свободных попытках;
@@ -260,7 +257,6 @@ Prisma schema содержит:
 
 - Выбрать конкретного провайдера email magic link/OTP. Shortlist и критерии: [`docs/auth-email-provider-options.md`](auth-email-provider-options.md).
 - Заменить `createUnavailableLoginCodeDelivery` на реальный email/OTP delivery provider.
-- Заменить временный in-memory rate-limit store на durable Redis/PostgreSQL policy перед production.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
 - Описать срок хранения исходных файлов и механизм удаления, если продукт решит сохранять файлы.

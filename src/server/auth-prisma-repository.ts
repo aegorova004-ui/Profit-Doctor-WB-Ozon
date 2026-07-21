@@ -1,5 +1,9 @@
 import type { AuthSessionRecord, AuthSessionRepository } from "./auth-session";
 import type {
+  AuthRateLimitAction,
+  AuthRateLimitEvent,
+} from "./auth-rate-limit";
+import type {
   CreateLoginCodeRepository,
   LoginCodeRecord,
   LoginCodeRepository,
@@ -61,7 +65,27 @@ export type AuthPrismaClient = {
       };
     }): Promise<unknown>;
   };
+  authRateLimitEvent: {
+    findMany(input: {
+      where: {
+        email: string;
+        action: PrismaAuthRateLimitAction;
+        createdAt: { gt: Date };
+      };
+      orderBy: { createdAt: "asc" };
+      select: { createdAt: true };
+    }): Promise<AuthRateLimitEvent[]>;
+    create(input: {
+      data: {
+        email: string;
+        action: PrismaAuthRateLimitAction;
+        createdAt: Date;
+      };
+    }): Promise<unknown>;
+  };
 };
+
+type PrismaAuthRateLimitAction = "REQUEST_CODE" | "VERIFY_CODE";
 
 export type AuthPrismaRepository = LoginCodeRepository &
   CreateLoginCodeRepository &
@@ -72,6 +96,16 @@ export type AuthPrismaRepository = LoginCodeRepository &
       expiresAt: Date;
     }): Promise<void>;
     revokeAuthSession(tokenHash: string, revokedAt: Date): Promise<void>;
+    findAuthRateLimitEvents(input: {
+      email: string;
+      action: AuthRateLimitAction;
+      since: Date;
+    }): Promise<AuthRateLimitEvent[]>;
+    createAuthRateLimitEvent(input: {
+      email: string;
+      action: AuthRateLimitAction;
+      createdAt: Date;
+    }): Promise<void>;
   };
 
 export function createPrismaAuthRepository(
@@ -153,5 +187,38 @@ export function createPrismaAuthRepository(
         data: { revokedAt },
       });
     },
+
+    findAuthRateLimitEvents(input) {
+      return prisma.authRateLimitEvent.findMany({
+        where: {
+          email: input.email,
+          action: toPrismaRateLimitAction(input.action),
+          createdAt: { gt: input.since },
+        },
+        orderBy: { createdAt: "asc" },
+        select: { createdAt: true },
+      });
+    },
+
+    async createAuthRateLimitEvent(input) {
+      await prisma.authRateLimitEvent.create({
+        data: {
+          email: input.email,
+          action: toPrismaRateLimitAction(input.action),
+          createdAt: input.createdAt,
+        },
+      });
+    },
   };
+}
+
+function toPrismaRateLimitAction(
+  action: AuthRateLimitAction,
+): PrismaAuthRateLimitAction {
+  switch (action) {
+    case "request_code":
+      return "REQUEST_CODE";
+    case "verify_code":
+      return "VERIFY_CODE";
+  }
 }

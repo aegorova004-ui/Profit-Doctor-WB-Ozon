@@ -2,7 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { LoginCodeDeliveryProvider } from "./auth-delivery";
 import { createUnavailableLoginCodeDelivery } from "./auth-delivery";
-import { handleRequestLoginCode, handleVerifyLoginCode } from "./auth-api";
+import {
+  authRateLimitActionForEndpoint,
+  createRateLimitSince,
+  handleRequestLoginCode,
+  handleVerifyLoginCode,
+} from "./auth-api";
 import type { AuthPrismaRepository } from "./auth-prisma-repository";
 import { hashSecret } from "./auth-tokens";
 
@@ -25,6 +30,8 @@ function createRepository(): AuthPrismaRepository {
     markUsed: vi.fn(async () => undefined),
     createAuthSession: vi.fn(async () => undefined),
     revokeAuthSession: vi.fn(async () => undefined),
+    findAuthRateLimitEvents: vi.fn(async () => []),
+    createAuthRateLimitEvent: vi.fn(async () => undefined),
   };
 }
 
@@ -184,5 +191,18 @@ describe("handleVerifyLoginCode", () => {
     expect(result.sessionCookie?.expiresAt).toEqual(
       new Date("2026-08-20T10:00:00.000Z"),
     );
+  });
+});
+
+describe("auth API rate-limit route helpers", () => {
+  it("calculates durable lookup lower bound from the policy window", () => {
+    expect(
+      createRateLimitSince(new Date("2026-07-21T10:15:00.000Z"), 900),
+    ).toEqual(new Date("2026-07-21T10:00:00.000Z"));
+  });
+
+  it("maps endpoints to durable rate-limit actions", () => {
+    expect(authRateLimitActionForEndpoint("request-code")).toBe("request_code");
+    expect(authRateLimitActionForEndpoint("verify-code")).toBe("verify_code");
   });
 });

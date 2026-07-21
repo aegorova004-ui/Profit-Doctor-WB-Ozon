@@ -49,7 +49,7 @@
 - [ ] Auth route payload валидируется до обращения к Prisma или email provider.
 - [ ] Невалидный, истёкший и уже использованный login code дают одинаковый публичный ответ.
 - [ ] Auth endpoints ограничивают частоту запроса и проверки login code до обращения к provider/Prisma и возвращают `429 rate_limited` с `retryAfterSeconds`.
-- [ ] Production rate-limit хранится вне памяти процесса и работает между инстансами.
+- [ ] Production rate-limit хранится в PostgreSQL `AuthRateLimitEvent`, без IP, user-agent и plaintext-кодов.
 - [ ] Срок хранения исходных файлов и удаление проверены.
 - [ ] Платёжный статус подтверждается на сервере; webhook защищён от повтора и подделки.
 

@@ -20,7 +20,7 @@
 - Демо-диагностика на первом экране отрисовывается цельным PNG; оригинальный пиксельный маскот Profit Doctor появляется в самой карточке и отдельном блоке-экскурсии, где держит руку поднятой при наведении или кратко поднимает её после тапа.
 - Информационные подсказки тарифов открываются наведением на десктопе и нажатием на сенсорных устройствах; активная карточка поднимается поверх соседних.
 - Prisma schema и начальная SQL-миграция содержат `User`, `UploadedReport`, `ReportRow`, `ProductProfitSnapshot` и `SubscriptionPlan`.
-- Добавлен фундамент auth/owner checks для будущей серверной истории отчётов: Prisma singleton, Prisma-модели `LoginCode`/`AuthSession`, `src/server/access-control.ts`, `src/server/auth-tokens.ts`, `src/server/auth-login-code.ts`, `src/server/auth-prisma-repository.ts`, `src/server/auth-flow.ts`, `src/server/auth-current-user.ts`, `src/server/auth-validation.ts`, `src/server/auth-http.ts` с `429 rate_limited` и `503 delivery_unavailable`, `src/server/auth-api.ts`, preview route handlers `/api/auth/request-code`, `/api/auth/verify-code`, `/api/auth/me` и `/api/auth/logout`, `src/server/auth-rate-limit.ts`, `src/server/auth-session.ts`, тесты доступа и документ `docs/auth-owner-checks.md`.
+- Добавлен фундамент auth/owner checks для будущей серверной истории отчётов: Prisma singleton, Prisma-модели `LoginCode`/`AuthSession`/`AuthRateLimitEvent`, `src/server/access-control.ts`, `src/server/auth-tokens.ts`, `src/server/auth-login-code.ts`, `src/server/auth-prisma-repository.ts`, `src/server/auth-flow.ts`, `src/server/auth-current-user.ts`, `src/server/auth-validation.ts`, `src/server/auth-http.ts` с `429 rate_limited` и `503 delivery_unavailable`, `src/server/auth-api.ts`, preview route handlers `/api/auth/request-code`, `/api/auth/verify-code`, `/api/auth/me` и `/api/auth/logout`, `src/server/auth-rate-limit.ts`, `src/server/auth-session.ts`, тесты доступа и документ `docs/auth-owner-checks.md`.
 - Подготовлен shortlist email/OTP-провайдеров для auth: основной кандидат UnisenderGo, альтернатива Sendsay, дополнительный кандидат SendPulse, запасной DashaMail.
 - Финансовое ядро считает суммы в integer-копейках, помечает неполный результат как оценку и возвращает маржу/ROI в базисных пунктах.
 - Контракт парсера, автоопределение WB/Ozon по заголовкам и синтетические fixtures готовы как основа Sprint 1.
@@ -36,7 +36,7 @@
 - Сквозной сценарий: вход → подтверждённый импорт → себестоимость → точная прибыль → экспорт.
 - Парсинг подтверждённых реальных форматов Wildberries и Ozon; текущая WB-версия имеет статус preview.
 - Авторизация, тарифные ограничения, платежи и админ-активация.
-- Серверная история отчётов: guard-утилиты, login-code flow, Prisma repository, auth-flow, current-user cookie boundary, payload validation, HTTP response mapping, auth API route handlers, auth rate-limit policy, session resolver и cookie policy готовы, но email/OTP delivery provider и durable production rate-limit ещё не подключены.
+- Серверная история отчётов: guard-утилиты, login-code flow, Prisma repository, auth-flow, current-user cookie boundary, payload validation, HTTP response mapping, auth API route handlers, durable PostgreSQL auth rate-limit policy, session resolver и cookie policy готовы, но email/OTP delivery provider ещё не подключён.
 - Применение миграции к реальной PostgreSQL: в текущем окружении сервер БД не подключён.
 - Production-деплой.
 

@@ -4,6 +4,8 @@ export type AuthRateLimitEvent = {
   createdAt: Date;
 };
 
+export type AuthRateLimitAction = "request_code" | "verify_code";
+
 export type AuthRateLimitPolicy = {
   maxAttempts: number;
   windowSeconds?: number;

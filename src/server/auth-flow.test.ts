@@ -23,6 +23,8 @@ function createRepository(): AuthPrismaRepository {
     markUsed: vi.fn(async () => undefined),
     createAuthSession: vi.fn(async () => undefined),
     revokeAuthSession: vi.fn(async () => undefined),
+    findAuthRateLimitEvents: vi.fn(async () => []),
+    createAuthRateLimitEvent: vi.fn(async () => undefined),
   };
 }
 

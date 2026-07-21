@@ -1,4 +1,7 @@
-import type { AuthRateLimitEvent } from "./auth-rate-limit";
+import type {
+  AuthRateLimitAction,
+  AuthRateLimitEvent,
+} from "./auth-rate-limit";
 import {
   LOGIN_CODE_REQUEST_RATE_LIMIT,
   LOGIN_CODE_VERIFY_RATE_LIMIT,
@@ -43,6 +46,16 @@ export type AuthApiResult = {
     expiresAt: Date;
   };
 };
+
+export function createRateLimitSince(now: Date, windowSeconds: number): Date {
+  return new Date(now.getTime() - windowSeconds * 1_000);
+}
+
+export function authRateLimitActionForEndpoint(
+  endpoint: "request-code" | "verify-code",
+): AuthRateLimitAction {
+  return endpoint === "request-code" ? "request_code" : "verify_code";
+}
 
 export async function handleRequestLoginCode(
   payload: unknown,

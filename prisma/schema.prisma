@@ -20,6 +20,11 @@ enum ReportStatus {
   FAILED
 }
 
+enum AuthRateLimitAction {
+  REQUEST_CODE
+  VERIFY_CODE
+}
+
 model User {
   id                 String            @id @default(cuid())
   email              String            @unique @db.Citext
@@ -43,6 +48,16 @@ model LoginCode {
 
   @@index([email, createdAt])
   @@index([expiresAt])
+}
+
+model AuthRateLimitEvent {
+  id        String              @id @default(cuid())
+  email     String              @db.Citext
+  action    AuthRateLimitAction
+  createdAt DateTime            @default(now())
+
+  @@index([email, action, createdAt])
+  @@index([createdAt])
 }
 
 model AuthSession {
