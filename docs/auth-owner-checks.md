@@ -61,6 +61,13 @@ Prisma schema содержит:
 - отказ для отсутствующей, истёкшей или отозванной сессии;
 - обновление `lastUsedAt` через repository boundary.
 
+`src/server/auth-cookie.ts` содержит:
+
+- имя session cookie `profit_doctor_session`;
+- `httpOnly`, `sameSite=lax`, `path=/`;
+- `secure=true` для production;
+- max age 30 дней и helper для очистки cookie.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -85,10 +92,16 @@ Prisma schema содержит:
 - неизвестную, истёкшую и отозванную сессию;
 - обновление `lastUsedAt` только для валидной сессии.
 
+`src/server/auth-cookie.test.ts` покрывает:
+
+- имя cookie;
+- local/production cookie policy;
+- очистку session cookie без ослабления настроек.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
-- Подключить `resolveCurrentUserFromSessionToken` к Next route handlers через cookie boundary.
+- Подключить `resolveCurrentUserFromSessionToken` к Next route handlers через `profit_doctor_session`.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
 - Описать срок хранения исходных файлов и механизм удаления, если продукт решит сохранять файлы.

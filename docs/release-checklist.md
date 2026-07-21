@@ -36,6 +36,7 @@
 - [ ] Login codes и session tokens хранятся только как hash; plaintext не пишется в БД или логи.
 - [ ] Истёкшие, consumed и revoked auth-записи не дают доступ.
 - [ ] Текущий пользователь определяется на сервере по session cookie через hash lookup, а не по `userId` из клиента.
+- [ ] Session cookie имеет `httpOnly`, `sameSite=lax`, `secure` в production и понятный срок жизни.
 - [ ] Срок хранения исходных файлов и удаление проверены.
 - [ ] Платёжный статус подтверждается на сервере; webhook защищён от повтора и подделки.
 
