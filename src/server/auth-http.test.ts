@@ -55,6 +55,11 @@ describe("authError", () => {
       status: 429,
       message: "Слишком много попыток. Попробуйте позже.",
     },
+    {
+      error: "delivery_unavailable",
+      status: 503,
+      message: "Отправка кода пока не подключена. Попробуйте позже.",
+    },
   ])(
     "maps $error to a stable public response",
     ({ error, status, message }) => {

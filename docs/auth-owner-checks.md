@@ -118,7 +118,16 @@ Prisma schema содержит:
 - `400` для некорректного email или формата кода;
 - `401` для невалидного login code без раскрытия причины;
 - `429 rate_limited` для превышения лимита с публичным `retryAfterSeconds`;
+- `503 delivery_unavailable`, если отправка кода ещё не настроена;
 - стабильные пользовательские сообщения для UI.
+
+`src/server/auth-api.ts` содержит framework-agnostic API-контракт для auth endpoints:
+
+- request-code валидирует payload, проверяет доступность delivery provider и rate-limit, затем выпускает код;
+- verify-code валидирует payload, проверяет rate-limit, создаёт session token и возвращает только cookie metadata;
+- session token не попадает в JSON-ответ.
+
+`src/app/api/auth/request-code/route.ts` и `src/app/api/auth/verify-code/route.ts` подключают контракт к Next route handlers. Отправка кода сейчас намеренно выключена через `createUnavailableLoginCodeDelivery`: endpoint возвращает `503 delivery_unavailable` и не создаёт login code, пока не выбран реальный email/OTP provider.
 
 `src/server/auth-rate-limit.ts` содержит rate-limit policy для будущих auth route handlers:
 
@@ -126,6 +135,8 @@ Prisma schema содержит:
 - не более 5 попыток проверки login code за 15 минут;
 - rolling-window расчёт `retryAfterSeconds`;
 - отказ от невалидной policy на уровне helper.
+
+`src/server/auth-memory-rate-limit.ts` содержит временный in-memory store событий rate-limit для preview/dev route handlers. Это не production-замена Redis/PostgreSQL rate-limit, потому что память не общая между инстансами.
 
 `src/server/access-control.test.ts` покрывает:
 
@@ -196,7 +207,22 @@ Prisma schema содержит:
 - успешный auth-ответ;
 - mapping validation errors в `400`;
 - единый `401 invalid_code` для неверного, истёкшего или уже использованного кода;
-- `429 rate_limited` и задержку повтора без раскрытия внутренних деталей лимита.
+- `429 rate_limited` и задержку повтора без раскрытия внутренних деталей лимита;
+- `503 delivery_unavailable` для не подключённой отправки кода.
+
+`src/server/auth-api.test.ts` покрывает:
+
+- отказ по невалидному payload до repository-запросов;
+- отказ `503 delivery_unavailable` без создания login code;
+- `429 rate_limited` для request-code;
+- успешную отправку кода только через delivery provider;
+- `401 invalid_code` без раскрытия причины;
+- успешную verify-code с session cookie metadata без токена в JSON.
+
+`src/server/auth-memory-rate-limit.test.ts` покрывает:
+
+- раздельные события request-code и verify-code;
+- очистку устаревших событий вне окна хранения.
 
 `src/server/auth-rate-limit.test.ts` покрывает:
 
@@ -209,9 +235,9 @@ Prisma schema содержит:
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
-- Подключить `requestLoginCode` и `verifyLoginCodeAndCreateSession` к Next route handlers.
+- Заменить `createUnavailableLoginCodeDelivery` на реальный email/OTP delivery provider.
 - Подключить `resolveCurrentUserFromCookies` к Next route handlers.
-- Подключить `checkAuthRateLimit` к request/verify endpoints до обращения к email provider или проверки кода.
+- Заменить временный in-memory rate-limit store на durable Redis/PostgreSQL policy перед production.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
 - Описать срок хранения исходных файлов и механизм удаления, если продукт решит сохранять файлы.

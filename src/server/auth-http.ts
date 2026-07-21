@@ -2,7 +2,10 @@ import type { AuthRateLimitDecision } from "./auth-rate-limit";
 import type { AuthValidationErrorCode } from "./auth-validation";
 
 export type AuthHttpErrorCode =
-  AuthValidationErrorCode | "invalid_code" | "rate_limited";
+  | AuthValidationErrorCode
+  | "invalid_code"
+  | "rate_limited"
+  | "delivery_unavailable";
 
 export type AuthHttpResponseBody =
   | {
@@ -68,6 +71,14 @@ const ERROR_RESPONSES: Record<AuthHttpErrorCode, AuthHttpResponse> = {
       ok: false,
       error: "rate_limited",
       message: "Слишком много попыток. Попробуйте позже.",
+    },
+  },
+  delivery_unavailable: {
+    status: 503,
+    body: {
+      ok: false,
+      error: "delivery_unavailable",
+      message: "Отправка кода пока не подключена. Попробуйте позже.",
     },
   },
 };
