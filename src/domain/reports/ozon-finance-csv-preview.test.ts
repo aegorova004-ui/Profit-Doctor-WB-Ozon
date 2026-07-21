@@ -173,6 +173,38 @@ describe("Ozon finance CSV preview parser", () => {
     );
   });
 
+  it("rejects the bundled unsupported-service Ozon fixture", () => {
+    const csv = readFileSync(
+      new URL(
+        "../../../tests/fixtures/reports/ozon-unsupported-service-preview.csv",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    expect(() => parseOzonFinanceCsvText(csv)).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "UNSUPPORTED_OZON_OPERATION",
+      }),
+    );
+  });
+
+  it("rejects the bundled service-only Ozon fixture without allocating it to SKU", () => {
+    const csv = readFileSync(
+      new URL(
+        "../../../tests/fixtures/reports/ozon-service-only-preview.csv",
+        import.meta.url,
+      ),
+      "utf8",
+    );
+
+    expect(() => parseOzonFinanceCsvText(csv)).toThrowError(
+      expect.objectContaining<Partial<ReportParseError>>({
+        code: "NO_PRODUCT_FINANCE_ROWS",
+      }),
+    );
+  });
+
   it("rejects missing required Ozon columns without exposing source rows", () => {
     expect(() =>
       parseOzonFinanceCsvRows([

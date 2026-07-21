@@ -35,6 +35,7 @@
 - Карта диагностики импорта `docs/import-diagnostics.md`: поддерживаемые форматы, категории ошибок и UX-тексты «что сделать дальше».
 - Parser contract tests для WB XLSX preview, WB CSV preview, большого WB CSV preview и Ozon CSV preview с фиксированными версиями, SKU и агрегатами.
 - Проверки CSV edge cases: BOM, пустые строки, `;`/`,`/tab-разделители, дубли колонок и защитные лимиты размера.
+- Негативные Ozon fixtures для service-only и unsupported-service сценариев без персональных или коммерческих данных.
 - Решение D-008: в Sprint 1 отчёты и экспорт не сохраняются на сервере, пока не готовы auth, owner checks и политика хранения.
 
 ### Изменено
