@@ -489,6 +489,76 @@ describe("ReportUpload", () => {
     ).toBe("1 834 ₽");
   });
 
+  it("shows found and missing columns for an unsupported CSV report", async () => {
+    const user = userEvent.setup();
+    const file = new File(
+      ["sku,offer_id,name\n100,OZON-100,Товар"],
+      "bad.csv",
+      {
+        type: "text/csv",
+      },
+    );
+
+    render(<ReportUpload />);
+
+    await user.upload(
+      screen.getByLabelText("Выбрать отчёт с устройства", { exact: false }),
+      file,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Проверить отчёт локально" }),
+    );
+
+    const title = await screen.findByRole("heading", {
+      name: "Формат пока не поддерживается",
+    });
+    const diagnostic = title.closest("section");
+    expect(diagnostic).not.toBeNull();
+    const card = within(diagnostic as HTMLElement);
+    expect(card.getByText("sku")).toBeTruthy();
+    expect(card.getByText("offer_id")).toBeTruthy();
+    expect(card.getByText("тип начисления")).toBeTruthy();
+    expect(
+      card.getByRole("link", { name: "Ozon CSV demo" }).getAttribute("href"),
+    ).toBe("/demo/ozon-finance-preview.csv");
+  });
+
+  it("shows found columns and template links for a WB catalog XLSX uploaded instead of a report", async () => {
+    const user = userEvent.setup();
+    const buffer = await readFile(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../public/demo/wb-product-catalog-not-finance.xlsx",
+      ),
+    );
+    const file = new File([new Uint8Array(buffer)], "wb-catalog.xlsx", {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    render(<ReportUpload />);
+
+    await user.upload(
+      screen.getByLabelText("Выбрать отчёт с устройства", { exact: false }),
+      file,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Проверить отчёт локально" }),
+    );
+
+    const title = await screen.findByRole("heading", {
+      name: "Это товарный каталог, не финансовый отчёт",
+    });
+    const diagnostic = title.closest("section");
+    expect(diagnostic).not.toBeNull();
+    const card = within(diagnostic as HTMLElement);
+    expect(card.getByText("Категория")).toBeTruthy();
+    expect(card.getByText("Название")).toBeTruthy();
+    expect(card.getByText("for_pay")).toBeTruthy();
+    expect(
+      card.getByRole("link", { name: "WB XLSX demo" }).getAttribute("href"),
+    ).toBe("/demo/wb-financial-report-preview.xlsx");
+  });
+
   it("keeps a large CSV report readable through desktop and mobile result views", async () => {
     const user = userEvent.setup();
     const file = new File(

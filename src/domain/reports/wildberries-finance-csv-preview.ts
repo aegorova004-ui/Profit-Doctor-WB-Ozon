@@ -17,7 +17,7 @@ const MAX_HEADER_SCAN_ROWS = 20;
 const MAX_REPORT_ROWS = 100_000;
 const MAX_REPORT_COLUMNS = 120;
 
-const REQUIRED_HEADERS = [
+export const WB_FINANCE_CSV_REQUIRED_HEADERS = [
   "currency_name",
   "nm_id",
   "barcode",
@@ -41,7 +41,7 @@ const OPTIONAL_MONEY_HEADERS = [
   "loyalty_discount",
 ] as const;
 
-type RequiredHeader = (typeof REQUIRED_HEADERS)[number];
+type RequiredHeader = (typeof WB_FINANCE_CSV_REQUIRED_HEADERS)[number];
 type OptionalMoneyHeader = (typeof OPTIONAL_MONEY_HEADERS)[number];
 type KnownHeader = RequiredHeader | OptionalMoneyHeader | "subject_name";
 type CsvRow = readonly string[];
@@ -105,7 +105,7 @@ function buildHeaderMap(headerRow: CsvRow): Map<KnownHeader, number> {
     );
   }
 
-  const missing = REQUIRED_HEADERS.filter(
+  const missing = WB_FINANCE_CSV_REQUIRED_HEADERS.filter(
     (required) => !allHeaders.includes(required),
   );
 
@@ -117,7 +117,7 @@ function buildHeaderMap(headerRow: CsvRow): Map<KnownHeader, number> {
   }
 
   const knownHeaders = [
-    ...REQUIRED_HEADERS,
+    ...WB_FINANCE_CSV_REQUIRED_HEADERS,
     ...OPTIONAL_MONEY_HEADERS,
     "subject_name",
   ] as const;

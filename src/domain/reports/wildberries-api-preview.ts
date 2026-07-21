@@ -13,7 +13,7 @@ export const WB_API_PREVIEW_FORMAT_VERSION =
 const MAX_HEADER_SCAN_ROWS = 20;
 const MAX_REPORT_ROWS = 100_000;
 const MAX_REPORT_COLUMNS = 100;
-const REQUIRED_HEADERS = [
+export const WB_API_PREVIEW_REQUIRED_HEADERS = [
   "currency_name",
   "subject_name",
   "nm_id",
@@ -30,7 +30,7 @@ const REQUIRED_HEADERS = [
   "for_pay",
 ] as const;
 
-type RequiredHeader = (typeof REQUIRED_HEADERS)[number];
+type RequiredHeader = (typeof WB_API_PREVIEW_REQUIRED_HEADERS)[number];
 type RawCell = string | boolean | Date | null;
 type RawRow = readonly RawCell[];
 
@@ -135,7 +135,7 @@ function buildHeaderMap(headerRow: RawRow): Map<RequiredHeader, number> {
     );
   }
 
-  const missing = REQUIRED_HEADERS.filter(
+  const missing = WB_API_PREVIEW_REQUIRED_HEADERS.filter(
     (required) => !allHeaders.includes(required),
   );
 
@@ -147,7 +147,10 @@ function buildHeaderMap(headerRow: RawRow): Map<RequiredHeader, number> {
   }
 
   return new Map(
-    REQUIRED_HEADERS.map((header) => [header, allHeaders.indexOf(header)]),
+    WB_API_PREVIEW_REQUIRED_HEADERS.map((header) => [
+      header,
+      allHeaders.indexOf(header),
+    ]),
   );
 }
 

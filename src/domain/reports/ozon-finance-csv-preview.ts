@@ -15,7 +15,7 @@ const MAX_HEADER_SCAN_ROWS = 20;
 const MAX_REPORT_ROWS = 100_000;
 const MAX_REPORT_COLUMNS = 80;
 
-const REQUIRED_HEADERS = [
+export const OZON_FINANCE_CSV_REQUIRED_HEADERS = [
   "sku",
   "offer_id",
   "тип начисления",
@@ -28,7 +28,7 @@ const REQUIRED_HEADERS = [
   "прочие услуги",
 ] as const;
 
-type RequiredHeader = (typeof REQUIRED_HEADERS)[number];
+type RequiredHeader = (typeof OZON_FINANCE_CSV_REQUIRED_HEADERS)[number];
 type KnownHeader = RequiredHeader | "название товара" | "дата операции";
 type CsvRow = readonly string[];
 
@@ -86,7 +86,7 @@ function buildHeaderMap(headerRow: CsvRow): Map<KnownHeader, number> {
     );
   }
 
-  const missing = REQUIRED_HEADERS.filter(
+  const missing = OZON_FINANCE_CSV_REQUIRED_HEADERS.filter(
     (required) => !allHeaders.includes(required),
   );
 
@@ -98,7 +98,7 @@ function buildHeaderMap(headerRow: CsvRow): Map<KnownHeader, number> {
   }
 
   const knownHeaders = [
-    ...REQUIRED_HEADERS,
+    ...OZON_FINANCE_CSV_REQUIRED_HEADERS,
     "название товара",
     "дата операции",
   ] as const;

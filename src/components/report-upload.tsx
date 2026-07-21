@@ -1,5 +1,6 @@
 "use client";
 
+import { readSheet } from "read-excel-file/universal";
 import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 import {
   analyzeParsedReport,
@@ -13,12 +14,19 @@ import {
 } from "@/domain/reports/diagnose-report";
 import { parseCsvRows } from "@/domain/reports/csv";
 import { detectReportMarketplace } from "@/domain/reports/detect-marketplace";
-import { parseOzonFinanceCsvText } from "@/domain/reports/ozon-finance-csv-preview";
+import {
+  parseOzonFinanceCsvText,
+  OZON_FINANCE_CSV_REQUIRED_HEADERS,
+} from "@/domain/reports/ozon-finance-csv-preview";
 import type { ParsedReport } from "@/domain/reports/parser";
-import { parseWildberriesFinanceCsvText } from "@/domain/reports/wildberries-finance-csv-preview";
+import {
+  parseWildberriesFinanceCsvText,
+  WB_FINANCE_CSV_REQUIRED_HEADERS,
+} from "@/domain/reports/wildberries-finance-csv-preview";
 import {
   parseWildberriesApiPreviewWorkbook,
   ReportParseError,
+  WB_API_PREVIEW_REQUIRED_HEADERS,
 } from "@/domain/reports/wildberries-api-preview";
 import { validateReportFile } from "@/domain/reports/validate-upload";
 import { ReportExportActions } from "./report-export-actions";
@@ -61,6 +69,176 @@ function adapterDisplayName(report: ParsedReport): string {
   }
 
   return "Preview-адаптер";
+}
+
+type UploadDiagnostic = {
+  title: string;
+  summary: string;
+  foundColumns: string[];
+  missingColumns: string[];
+  templateLinks: { href: string; label: string }[];
+};
+
+type RawSheetCell = string | number | boolean | Date | null;
+
+const DEMO_TEMPLATE_LINKS = [
+  {
+    href: "/demo/wb-financial-report-preview.xlsx",
+    label: "WB XLSX demo",
+  },
+  {
+    href: "/demo/wb-finance-api-preview.csv",
+    label: "WB CSV demo",
+  },
+  {
+    href: "/demo/ozon-finance-preview.csv",
+    label: "Ozon CSV demo",
+  },
+];
+
+function normalizeDiagnosticHeader(value: string): string {
+  return value.trim().toLocaleLowerCase("ru-RU").replaceAll("ё", "е");
+}
+
+function decodeNumericHtmlEntities(value: string): string {
+  return value.replace(/&#(\d+);/g, (_, code: string) =>
+    String.fromCodePoint(Number(code)),
+  );
+}
+
+function toDiagnosticCell(cell: RawSheetCell | undefined): string {
+  if (cell === null || cell === undefined) {
+    return "";
+  }
+
+  if (cell instanceof Date) {
+    return cell.toISOString();
+  }
+
+  return decodeNumericHtmlEntities(String(cell)).trim();
+}
+
+function chooseLikelyHeaderRow(
+  rows: readonly (readonly RawSheetCell[])[],
+): string[] {
+  const candidates = rows.slice(0, 20).map((row) => {
+    const cells = row.map(toDiagnosticCell).filter(Boolean);
+    const normalized = new Set(cells.map(normalizeDiagnosticHeader));
+    const markerScore = [
+      "nm_id",
+      "barcode",
+      "doc_type_name",
+      "supplier_oper_name",
+      "ppvz_for_pay",
+      "sku",
+      "offer_id",
+      "тип начисления",
+    ].filter((marker) => normalized.has(marker)).length;
+
+    return { cells, markerScore };
+  });
+
+  return (
+    candidates.sort(
+      (left, right) =>
+        right.markerScore - left.markerScore ||
+        right.cells.length - left.cells.length,
+    )[0]?.cells ?? []
+  );
+}
+
+function missingHeaders(
+  required: readonly string[],
+  foundColumns: readonly string[],
+): string[] {
+  const found = new Set(foundColumns.map(normalizeDiagnosticHeader));
+
+  return required.filter(
+    (header) => !found.has(normalizeDiagnosticHeader(header)),
+  );
+}
+
+function diagnosticTitle(cause: unknown): string {
+  if (!(cause instanceof ReportParseError)) {
+    return "Формат пока не поддерживается";
+  }
+
+  if (cause.code === "MISSING_COLUMNS") {
+    return "Не хватает колонок для расчёта";
+  }
+
+  if (cause.code === "WB_PRODUCT_CATALOG_UPLOADED") {
+    return "Это товарный каталог, не финансовый отчёт";
+  }
+
+  if (cause.code.includes("FORMAT_NOT_RECOGNIZED")) {
+    return "Формат пока не поддерживается";
+  }
+
+  return "Отчёт требует проверки";
+}
+
+function buildDiagnosticFromColumns(
+  format: "CSV" | "XLSX",
+  foundColumns: string[],
+  cause: unknown,
+): UploadDiagnostic {
+  const marketplace = detectReportMarketplace(foundColumns);
+  const required =
+    format === "XLSX"
+      ? WB_API_PREVIEW_REQUIRED_HEADERS
+      : marketplace === "ozon"
+        ? OZON_FINANCE_CSV_REQUIRED_HEADERS
+        : WB_FINANCE_CSV_REQUIRED_HEADERS;
+  const foundPreview = foundColumns.slice(0, 12);
+  const missing = missingHeaders(required, foundColumns);
+
+  return {
+    title: diagnosticTitle(cause),
+    summary:
+      marketplace === null
+        ? "Мы не нашли достаточно признаков поддерживаемого финансового отчёта WB или Ozon."
+        : `Файл похож на ${marketplaceShortName(marketplace)}, но preview-адаптеру не хватает данных для безопасного расчёта.`,
+    foundColumns: foundPreview,
+    missingColumns:
+      missing.length > 0
+        ? missing
+        : ["Поддерживаемая строка заголовков финансового отчёта"],
+    templateLinks: DEMO_TEMPLATE_LINKS,
+  };
+}
+
+async function buildUploadDiagnostic(
+  file: File,
+  format: "CSV" | "XLSX",
+  cause: unknown,
+): Promise<UploadDiagnostic> {
+  try {
+    if (format === "CSV") {
+      const rows = parseCsvRows(await file.text());
+      return buildDiagnosticFromColumns(
+        format,
+        chooseLikelyHeaderRow(rows),
+        cause,
+      );
+    }
+
+    const rows = (await readSheet(file)) as RawSheetCell[][];
+    return buildDiagnosticFromColumns(
+      format,
+      chooseLikelyHeaderRow(rows),
+      cause,
+    );
+  } catch {
+    return {
+      title: diagnosticTitle(cause),
+      summary:
+        "Не удалось безопасно прочитать заголовки файла. Попробуйте сохранить отчёт заново или сравнить его с демо-шаблоном.",
+      foundColumns: [],
+      missingColumns: ["Поддерживаемая строка заголовков финансового отчёта"],
+      templateLinks: DEMO_TEMPLATE_LINKS,
+    };
+  }
 }
 
 async function parseSupportedCsvPreviewFile(file: Blob): Promise<ParsedReport> {
@@ -138,6 +316,57 @@ function ImportAdapterStatus({
       <p>
         Версия: <code>{report.formatVersion}</code>
       </p>
+    </section>
+  );
+}
+
+function UploadDiagnosticCard({
+  diagnostic,
+}: {
+  diagnostic: UploadDiagnostic;
+}) {
+  return (
+    <section
+      className="upload-diagnostic"
+      aria-labelledby="upload-diagnostic-title"
+    >
+      <div>
+        <p className="eyebrow eyebrow-dark">Диагностика формата</p>
+        <h2 id="upload-diagnostic-title">{diagnostic.title}</h2>
+        <p>{diagnostic.summary}</p>
+      </div>
+
+      <div className="upload-diagnostic-grid">
+        <div>
+          <strong>Нашли в файле</strong>
+          {diagnostic.foundColumns.length > 0 ? (
+            <ul>
+              {diagnostic.foundColumns.map((column) => (
+                <li key={column}>{column}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>Заголовки не удалось прочитать безопасно.</p>
+          )}
+        </div>
+        <div>
+          <strong>Не хватает для preview</strong>
+          <ul>
+            {diagnostic.missingColumns.map((column) => (
+              <li key={column}>{column}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="upload-diagnostic-actions">
+        <span>Сравните файл с шаблоном:</span>
+        {diagnostic.templateLinks.map((link) => (
+          <a href={link.href} key={link.href} download>
+            {link.label}
+          </a>
+        ))}
+      </div>
     </section>
   );
 }
@@ -706,6 +935,7 @@ export function ReportUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [format, setFormat] = useState<"CSV" | "XLSX" | null>(null);
   const [error, setError] = useState("");
+  const [diagnostic, setDiagnostic] = useState<UploadDiagnostic | null>(null);
   const [report, setReport] = useState<ParsedReport | null>(null);
   const [costValues, setCostValues] = useState<Record<string, string>>({});
   const [costErrors, setCostErrors] = useState<Record<string, string>>({});
@@ -722,6 +952,7 @@ export function ReportUpload() {
 
   function resetAnalysis() {
     setReport(null);
+    setDiagnostic(null);
     setCostValues({});
     setCostErrors({});
     setCostFormError("");
@@ -786,6 +1017,7 @@ export function ReportUpload() {
           : await parseSupportedCsvPreviewFile(file);
       if (analysisRunRef.current === runId) {
         setReport(parsed);
+        setDiagnostic(null);
       }
     } catch (cause) {
       if (analysisRunRef.current === runId) {
@@ -794,6 +1026,7 @@ export function ReportUpload() {
             ? cause.message
             : "Не удалось обработать отчёт. Файл не был отправлен на сервер",
         );
+        setDiagnostic(await buildUploadDiagnostic(file, format, cause));
       }
     } finally {
       if (analysisRunRef.current === runId) {
@@ -834,6 +1067,7 @@ export function ReportUpload() {
         setFile(demoFile);
         setFormat("XLSX");
         setReport(parsed);
+        setDiagnostic(null);
       }
     } catch {
       if (analysisRunRef.current === runId) {
@@ -876,6 +1110,7 @@ export function ReportUpload() {
         setFile(demoFile);
         setFormat("CSV");
         setReport(parsed);
+        setDiagnostic(null);
       }
     } catch {
       if (analysisRunRef.current === runId) {
@@ -918,6 +1153,7 @@ export function ReportUpload() {
         setFile(demoFile);
         setFormat("CSV");
         setReport(parsed);
+        setDiagnostic(null);
       }
     } catch {
       if (analysisRunRef.current === runId) {
@@ -1047,6 +1283,7 @@ export function ReportUpload() {
             {error}
           </p>
         )}
+        {diagnostic && <UploadDiagnosticCard diagnostic={diagnostic} />}
         {file && format && (
           <div className="selected-file">
             <span className="file-type" aria-hidden="true">
