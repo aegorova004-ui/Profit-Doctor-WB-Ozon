@@ -345,16 +345,6 @@ describe("ReportUpload", () => {
     ).toBeTruthy();
   });
 
-  it("shows the renamed WB XLSX demo template link", () => {
-    render(<ReportUpload />);
-
-    expect(
-      screen
-        .getByRole("link", { name: "WB XLSX — рабочий финансовый отчёт" })
-        .getAttribute("href"),
-    ).toBe("/demo/wb-financial-report-preview.xlsx");
-  });
-
   it("opens the bundled demo CSV report without a manual file upload", async () => {
     const user = userEvent.setup();
     const csv = await readFile(
@@ -440,49 +430,6 @@ describe("ReportUpload", () => {
     expect(
       summary.getByText("Удержания Ozon").nextElementSibling?.textContent,
     ).toBe("4 066 ₽");
-  });
-
-  it("shows direct links to all synthetic demo templates", () => {
-    render(<ReportUpload />);
-
-    expect(
-      screen
-        .getByRole("link", { name: "WB XLSX — рабочий финансовый отчёт" })
-        .getAttribute("href"),
-    ).toBe("/demo/wb-financial-report-preview.xlsx");
-    expect(
-      screen
-        .getByRole("link", { name: "WB CSV — рабочий API-like finance" })
-        .getAttribute("href"),
-    ).toBe("/demo/wb-finance-api-preview.csv");
-    expect(
-      screen
-        .getByRole("link", {
-          name: "WB CSV — большой файл для проверки таблицы",
-        })
-        .getAttribute("href"),
-    ).toBe("/demo/wb-finance-large-preview.csv");
-    expect(
-      screen
-        .getByRole("link", {
-          name: "WB XLSX — товарный каталог для проверки ошибки",
-        })
-        .getAttribute("href"),
-    ).toBe("/demo/wb-product-catalog-not-finance.xlsx");
-    expect(
-      screen
-        .getByRole("link", {
-          name: "CSV — неизвестный формат для проверки ошибки",
-        })
-        .getAttribute("href"),
-    ).toBe("/demo/unsupported-finance-format.csv");
-    expect(
-      screen
-        .getByRole("link", {
-          name: "Ozon CSV — рабочий preview finance",
-        })
-        .getAttribute("href"),
-    ).toBe("/demo/ozon-finance-preview.csv");
   });
 
   it("analyzes a WB finance CSV preview report", async () => {

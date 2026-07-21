@@ -2379,78 +2379,6 @@ tbody tr:hover {
   background: #f4faef;
 }
 
-.demo-templates {
-  display: grid;
-  gap: 12px;
-  margin-top: 16px;
-  padding: 14px;
-  border: 1px solid #d8e0d4;
-  border-radius: 16px;
-  background: #f7faf4;
-}
-
-.demo-templates h2 {
-  margin: 0;
-  color: #0d1915;
-  font-size: 14px;
-  letter-spacing: -0.02em;
-}
-
-.demo-templates p {
-  margin: 5px 0 0;
-  color: #5d6c64;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.demo-templates ul {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.demo-templates a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 100%;
-  padding: 11px 12px;
-  color: #244f31;
-  border: 1px solid #cfe0c7;
-  border-radius: 11px;
-  background: #ffffff;
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1.35;
-  text-decoration: none;
-}
-
-.demo-templates a span:first-child {
-  min-width: 0;
-}
-
-.demo-templates a span[aria-hidden="true"] {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  color: #173c2a;
-  border-radius: 999px;
-  background: #e4f7d8;
-  font-size: 14px;
-  line-height: 1;
-}
-
-.demo-templates a:hover {
-  border-color: #9bc686;
-  background: #edf9e7;
-}
-
 .upload-privacy {
   display: flex;
   align-items: center;
@@ -3772,10 +3700,6 @@ tbody tr:hover {
   }
 
   .upload-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .demo-templates ul {
     grid-template-columns: 1fr;
   }
 

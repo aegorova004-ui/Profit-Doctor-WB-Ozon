@@ -15,7 +15,6 @@ import {
 import { parseCsvRows } from "@/domain/reports/csv";
 import {
   OZON_CSV_DEMO_REPORT,
-  PUBLIC_DEMO_TEMPLATE_LINKS,
   WB_CSV_DEMO_REPORT,
   WB_XLSX_DEMO_REPORT,
   WORKING_DEMO_TEMPLATE_LINKS,
@@ -1369,26 +1368,6 @@ export function ReportUpload() {
       </div>
       {demoMessage && (
         <p className="upload-message upload-demo-message">{demoMessage}</p>
-      )}
-      {!report && !diagnostic && (
-        <section
-          className="demo-templates"
-          aria-labelledby="demo-templates-title"
-        >
-          <div>
-            <h2 id="demo-templates-title">Скачать шаблон вручную</h2>
-          </div>
-          <ul>
-            {PUBLIC_DEMO_TEMPLATE_LINKS.map((template) => (
-              <li key={template.href}>
-                <a href={template.href} download>
-                  <span>{template.description}</span>
-                  <span aria-hidden="true">↓</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
       )}
       <p className="upload-privacy">
         <span aria-hidden="true">●</span>
