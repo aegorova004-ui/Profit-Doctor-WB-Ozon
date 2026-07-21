@@ -25,7 +25,7 @@
 - Ручной ввод себестоимости единицы по SKU с точным пересчётом через integer-копейки и `BigInt`.
 - Расшифровка источников сумм и статусы «Убыток», «Пока в плюсе» и «Нужна себестоимость» в таблице анализа.
 - Диагноз по SKU с разрывом до безубыточности, предельной себестоимостью до рекламы, приоритетами и крупнейшей известной статьёй расходов.
-- Документ `docs/auth-owner-checks.md`, Prisma-модели `LoginCode`/`AuthSession`, Prisma auth repository, auth-token helpers, прикладной auth-flow, current-user cookie boundary, auth payload validation, login-code flow, session resolver, session-cookie policy и server access-control guards для будущей истории отчётов.
+- Документ `docs/auth-owner-checks.md`, Prisma-модели `LoginCode`/`AuthSession`, Prisma auth repository, auth-token helpers, прикладной auth-flow, current-user cookie boundary, auth payload validation, auth HTTP response mapping, login-code flow, session resolver, session-cookie policy и server access-control guards для будущей истории отчётов.
 
 ### Изменено
 

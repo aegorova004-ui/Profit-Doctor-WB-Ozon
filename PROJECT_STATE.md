@@ -20,7 +20,7 @@
 - Демо-диагностика на первом экране отрисовывается цельным PNG; оригинальный пиксельный маскот Profit Doctor появляется в самой карточке и отдельном блоке-экскурсии, где держит руку поднятой при наведении или кратко поднимает её после тапа.
 - Информационные подсказки тарифов открываются наведением на десктопе и нажатием на сенсорных устройствах; активная карточка поднимается поверх соседних.
 - Prisma schema и начальная SQL-миграция содержат `User`, `UploadedReport`, `ReportRow`, `ProductProfitSnapshot` и `SubscriptionPlan`.
-- Добавлен фундамент auth/owner checks для будущей серверной истории отчётов: Prisma-модели `LoginCode`/`AuthSession`, `src/server/access-control.ts`, `src/server/auth-tokens.ts`, `src/server/auth-login-code.ts`, `src/server/auth-prisma-repository.ts`, `src/server/auth-flow.ts`, `src/server/auth-current-user.ts`, `src/server/auth-validation.ts`, `src/server/auth-session.ts`, тесты доступа и документ `docs/auth-owner-checks.md`.
+- Добавлен фундамент auth/owner checks для будущей серверной истории отчётов: Prisma-модели `LoginCode`/`AuthSession`, `src/server/access-control.ts`, `src/server/auth-tokens.ts`, `src/server/auth-login-code.ts`, `src/server/auth-prisma-repository.ts`, `src/server/auth-flow.ts`, `src/server/auth-current-user.ts`, `src/server/auth-validation.ts`, `src/server/auth-http.ts`, `src/server/auth-session.ts`, тесты доступа и документ `docs/auth-owner-checks.md`.
 - Финансовое ядро считает суммы в integer-копейках, помечает неполный результат как оценку и возвращает маржу/ROI в базисных пунктах.
 - Контракт парсера, автоопределение WB/Ozon по заголовкам и синтетические fixtures готовы как основа Sprint 1.
 - Добавлен синтетический XLSX-fixture финансового отчёта Wildberries: 22 API-поля, продажа, возврат, логистика и хранение. Файл не содержит персональных или коммерческих данных и не заменяет актуальную анонимизированную выгрузку продавца.
@@ -35,7 +35,7 @@
 - Сквозной сценарий: вход → подтверждённый импорт → себестоимость → точная прибыль → экспорт.
 - Парсинг подтверждённых реальных форматов Wildberries и Ozon; текущая WB-версия имеет статус preview.
 - Авторизация, тарифные ограничения, платежи и админ-активация.
-- Серверная история отчётов: guard-утилиты, login-code flow, Prisma repository, auth-flow, current-user cookie boundary, payload validation, session resolver и cookie policy готовы, но реальные Next route handlers и email delivery ещё не подключены.
+- Серверная история отчётов: guard-утилиты, login-code flow, Prisma repository, auth-flow, current-user cookie boundary, payload validation, HTTP response mapping, session resolver и cookie policy готовы, но реальные Next route handlers и email delivery ещё не подключены.
 - Применение миграции к реальной PostgreSQL: в текущем окружении сервер БД не подключён.
 - Production-деплой.
 

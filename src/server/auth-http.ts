@@ -1,0 +1,76 @@
+import type { AuthValidationErrorCode } from "./auth-validation";
+
+export type AuthHttpErrorCode = AuthValidationErrorCode | "invalid_code";
+
+export type AuthHttpResponseBody =
+  | {
+      ok: true;
+      message: string;
+    }
+  | {
+      ok: false;
+      error: AuthHttpErrorCode;
+      message: string;
+    };
+
+export type AuthHttpResponse = {
+  status: number;
+  body: AuthHttpResponseBody;
+};
+
+const ERROR_RESPONSES: Record<AuthHttpErrorCode, AuthHttpResponse> = {
+  email_required: {
+    status: 400,
+    body: {
+      ok: false,
+      error: "email_required",
+      message: "Введите email.",
+    },
+  },
+  email_invalid: {
+    status: 400,
+    body: {
+      ok: false,
+      error: "email_invalid",
+      message: "Проверьте email: похоже, в адресе ошибка.",
+    },
+  },
+  code_required: {
+    status: 400,
+    body: {
+      ok: false,
+      error: "code_required",
+      message: "Введите код из письма.",
+    },
+  },
+  code_invalid: {
+    status: 400,
+    body: {
+      ok: false,
+      error: "code_invalid",
+      message: "Код должен состоять из 6 цифр.",
+    },
+  },
+  invalid_code: {
+    status: 401,
+    body: {
+      ok: false,
+      error: "invalid_code",
+      message: "Код не подошёл. Проверьте письмо или запросите новый код.",
+    },
+  },
+};
+
+export function authSuccess(message: string): AuthHttpResponse {
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      message,
+    },
+  };
+}
+
+export function authError(error: AuthHttpErrorCode): AuthHttpResponse {
+  return ERROR_RESPONSES[error];
+}
