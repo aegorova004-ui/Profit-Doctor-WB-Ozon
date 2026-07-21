@@ -129,6 +129,12 @@ Prisma schema содержит:
 
 `src/app/api/auth/request-code/route.ts` и `src/app/api/auth/verify-code/route.ts` подключают контракт к Next route handlers. Отправка кода сейчас намеренно выключена через `createUnavailableLoginCodeDelivery`: endpoint возвращает `503 delivery_unavailable` и не создаёт login code, пока не выбран реальный email/OTP provider.
 
+`src/server/auth-current-user-api.ts` и `src/app/api/auth/me/route.ts` подключают чтение текущего пользователя по session cookie:
+
+- сервер читает только `profit_doctor_session`;
+- lookup идёт через hash session token;
+- без cookie возвращается `401 unauthenticated` без repository-запроса.
+
 `src/server/auth-rate-limit.ts` содержит rate-limit policy для будущих auth route handlers:
 
 - не более 3 запросов login code за 15 минут;
@@ -194,6 +200,11 @@ Prisma schema содержит:
 - отсутствие запроса к repository без cookie;
 - резолв текущего пользователя через hash lookup;
 - возврат единой cookie policy.
+
+`src/server/auth-current-user-api.test.ts` покрывает:
+
+- `200` с текущим пользователем по session cookie;
+- `401 unauthenticated` без repository-запроса.
 
 `src/server/auth-validation.test.ts` покрывает:
 

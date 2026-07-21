@@ -36,6 +36,7 @@
 - [ ] Login codes и session tokens хранятся только как hash; plaintext не пишется в БД или логи.
 - [ ] Истёкшие, consumed и revoked auth-записи не дают доступ.
 - [ ] Текущий пользователь определяется на сервере по session cookie через hash lookup, а не по `userId` из клиента.
+- [ ] `/api/auth/me` возвращает текущего пользователя только по session cookie, не по `userId` с клиента.
 - [ ] Session cookie имеет `httpOnly`, `sameSite=lax`, `secure` в production и понятный срок жизни.
 - [ ] Без session cookie сервер не делает лишних запросов к auth repository.
 - [ ] Login code действует ограниченное время и гасится после успешной проверки.
