@@ -77,6 +77,16 @@ Prisma schema содержит:
 - отказ для пустого, неверного, истёкшего или уже использованного кода;
 - погашение кода до выдачи пользователя через repository boundary.
 
+`src/server/auth-prisma-repository.ts` содержит Prisma adapter для auth foundation:
+
+- создание `LoginCode` без plaintext-кода;
+- загрузку последнего login code по email;
+- atomic-погашение непогашенного кода через `updateMany`;
+- upsert пользователя по нормализованному email;
+- загрузку session по `tokenHash` с минимальными полями пользователя;
+- обновление `lastUsedAt` без изменения revoked-сессий;
+- создание `AuthSession` по `userId`, `tokenHash` и `expiresAt`.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -114,10 +124,16 @@ Prisma schema содержит:
 - успешное погашение валидного кода;
 - отказ для пустого, неизвестного, неверного, истёкшего и уже использованного кода.
 
+`src/server/auth-prisma-repository.test.ts` покрывает:
+
+- Prisma-запросы для login codes, users и auth sessions;
+- отсутствие plaintext-кода в create-запросе;
+- выбор минимального набора auth-полей;
+- защиту от обновления revoked-сессий при `markUsed`.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
-- Подключить repository к Prisma для `LoginCode`, `User` и `AuthSession`.
 - Подключить `resolveCurrentUserFromSessionToken` к Next route handlers через `profit_doctor_session`.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
