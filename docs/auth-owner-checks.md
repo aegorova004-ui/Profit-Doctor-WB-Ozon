@@ -54,6 +54,13 @@ Prisma schema содержит:
 - constant-time проверку секрета;
 - helpers для срока действия.
 
+`src/server/auth-session.ts` содержит:
+
+- `resolveCurrentUserFromSessionToken`;
+- lookup сессии только по hash токена;
+- отказ для отсутствующей, истёкшей или отозванной сессии;
+- обновление `lastUsedAt` через repository boundary.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -71,10 +78,17 @@ Prisma schema содержит:
 - длину login code;
 - расчёт expiry.
 
+`src/server/auth-session.test.ts` покрывает:
+
+- отсутствие cookie/session token;
+- lookup по hash вместо plaintext;
+- неизвестную, истёкшую и отозванную сессию;
+- обновление `lastUsedAt` только для валидной сессии.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
-- Добавить session storage и server-side получение текущего пользователя.
+- Подключить `resolveCurrentUserFromSessionToken` к Next route handlers через cookie boundary.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
 - Описать срок хранения исходных файлов и механизм удаления, если продукт решит сохранять файлы.
