@@ -2279,14 +2279,14 @@ tbody tr:hover {
 
 .upload-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.45fr);
   gap: 12px;
   margin-top: 16px;
 }
 
 .upload-submit {
   width: 100%;
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 .upload-demo {

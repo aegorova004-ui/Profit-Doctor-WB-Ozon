@@ -14,8 +14,6 @@ import {
 } from "@/domain/reports/diagnose-report";
 import { parseCsvRows } from "@/domain/reports/csv";
 import {
-  OZON_CSV_DEMO_REPORT,
-  WB_CSV_DEMO_REPORT,
   WB_XLSX_DEMO_REPORT,
   WORKING_DEMO_TEMPLATE_LINKS,
 } from "@/domain/reports/demo-fixtures";
@@ -1036,103 +1034,13 @@ export function ReportUpload() {
         setFormat("XLSX");
         setReport(parsed);
         setDiagnostic(null);
-        setDemoMessage("Демо XLSX WB открыт. Результат ниже обновлён.");
+        setDemoMessage("Демо-отчёт открыт. Результат ниже обновлён.");
         scrollToAnalysisSoon();
       }
     } catch {
       if (analysisRunRef.current === runId) {
         setError(
           "Не удалось открыть демо-отчёт. Попробуйте выбрать XLSX вручную.",
-        );
-      }
-    } finally {
-      if (analysisRunRef.current === runId) {
-        setIsAnalyzing(false);
-      }
-    }
-  }
-
-  async function handleLoadDemoCsvReport() {
-    const runId = ++analysisRunRef.current;
-
-    setFile(null);
-    setFormat(null);
-    resetAnalysis();
-    setError("");
-    setIsAnalyzing(true);
-
-    try {
-      const response = await fetch(WB_CSV_DEMO_REPORT.href, {
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        throw new Error("demo csv report is unavailable");
-      }
-
-      const text = await response.text();
-      const demoFile = new File([text], WB_CSV_DEMO_REPORT.downloadName, {
-        type: WB_CSV_DEMO_REPORT.mimeType,
-      });
-      const parsed = parseWildberriesFinanceCsvText(text);
-
-      if (analysisRunRef.current === runId) {
-        setFile(demoFile);
-        setFormat("CSV");
-        setReport(parsed);
-        setDiagnostic(null);
-        setDemoMessage("Демо CSV WB открыт. Результат ниже обновлён.");
-        scrollToAnalysisSoon();
-      }
-    } catch {
-      if (analysisRunRef.current === runId) {
-        setError(
-          "Не удалось открыть демо CSV. Попробуйте скачать шаблон и выбрать его вручную.",
-        );
-      }
-    } finally {
-      if (analysisRunRef.current === runId) {
-        setIsAnalyzing(false);
-      }
-    }
-  }
-
-  async function handleLoadDemoOzonCsvReport() {
-    const runId = ++analysisRunRef.current;
-
-    setFile(null);
-    setFormat(null);
-    resetAnalysis();
-    setError("");
-    setIsAnalyzing(true);
-
-    try {
-      const response = await fetch(OZON_CSV_DEMO_REPORT.href, {
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        throw new Error("demo ozon csv report is unavailable");
-      }
-
-      const text = await response.text();
-      const demoFile = new File([text], OZON_CSV_DEMO_REPORT.downloadName, {
-        type: OZON_CSV_DEMO_REPORT.mimeType,
-      });
-      const parsed = parseOzonFinanceCsvText(text);
-
-      if (analysisRunRef.current === runId) {
-        setFile(demoFile);
-        setFormat("CSV");
-        setReport(parsed);
-        setDiagnostic(null);
-        setDemoMessage("Демо CSV Ozon открыт. Результат ниже обновлён.");
-        scrollToAnalysisSoon();
-      }
-    } catch {
-      if (analysisRunRef.current === runId) {
-        setError(
-          "Не удалось открыть демо CSV Ozon. Попробуйте скачать шаблон и выбрать его вручную.",
         );
       }
     } finally {
@@ -1299,25 +1207,7 @@ export function ReportUpload() {
           disabled={isAnalyzing}
           onClick={handleLoadDemoReport}
         >
-          <span>Открыть демо XLSX WB</span>
-          <span aria-hidden="true">↓</span>
-        </button>
-        <button
-          className="button upload-demo"
-          type="button"
-          disabled={isAnalyzing}
-          onClick={handleLoadDemoCsvReport}
-        >
-          <span>Открыть демо CSV WB</span>
-          <span aria-hidden="true">↓</span>
-        </button>
-        <button
-          className="button upload-demo"
-          type="button"
-          disabled={isAnalyzing}
-          onClick={handleLoadDemoOzonCsvReport}
-        >
-          <span>Открыть демо CSV Ozon</span>
+          <span>Посмотреть демо на примере</span>
           <span aria-hidden="true">↓</span>
         </button>
       </div>
