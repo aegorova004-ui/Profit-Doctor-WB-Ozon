@@ -309,6 +309,48 @@ describe("ReportUpload", () => {
     expect(screen.getByTestId("analysis-summary")).toBeTruthy();
   });
 
+  it("shows a clear CSV export error when the browser blocks download", async () => {
+    const user = userEvent.setup();
+    const buffer = await readFile(
+      path.resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "../../tests/fixtures/reports/wb-financial-report-api-synthetic.xlsx",
+      ),
+    );
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      arrayBuffer: async () =>
+        buffer.buffer.slice(
+          buffer.byteOffset,
+          buffer.byteOffset + buffer.byteLength,
+        ),
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: vi.fn(() => {
+        throw new Error("download blocked");
+      }),
+    });
+
+    render(<ReportUpload />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Открыть демо XLSX WB" }),
+    );
+    await screen.findByRole("heading", {
+      name: "Отчёт WB прочитан локально",
+    });
+
+    await user.click(screen.getByRole("button", { name: /CSV для импорта/ }));
+
+    expect(
+      screen.getByText(
+        "Не удалось скачать CSV. Проверьте, что браузер не блокирует загрузки, или попробуйте XLSX.",
+      ),
+    ).toBeTruthy();
+  });
+
   it("shows the renamed WB XLSX demo template link", () => {
     render(<ReportUpload />);
 

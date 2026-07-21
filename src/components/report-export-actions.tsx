@@ -16,13 +16,17 @@ type ReportExportActionsProps = {
 function downloadBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.hidden = true;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+
+  try {
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.hidden = true;
+    document.body.append(anchor);
+    anchor.click();
+  } finally {
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function ReportExportActions({
@@ -34,19 +38,27 @@ export function ReportExportActions({
   const [error, setError] = useState("");
 
   function handleCsvDownload() {
+    setMessage("");
     setError("");
-    const csv = buildReportCsv({
-      analysis,
-      sourceFileName,
-      createdAtIso: new Date().toISOString(),
-    });
-    downloadBlob(
-      new Blob([csv], { type: "text/csv;charset=utf-8" }),
-      createReportExportFileName(sourceFileName, "csv"),
-    );
-    setMessage(
-      "CSV готов. Это технический формат без оформления; для просмотра в Excel выбирайте XLSX.",
-    );
+
+    try {
+      const csv = buildReportCsv({
+        analysis,
+        sourceFileName,
+        createdAtIso: new Date().toISOString(),
+      });
+      downloadBlob(
+        new Blob([csv], { type: "text/csv;charset=utf-8" }),
+        createReportExportFileName(sourceFileName, "csv"),
+      );
+      setMessage(
+        "CSV готов. Это технический формат без оформления; для просмотра в Excel выбирайте XLSX.",
+      );
+    } catch {
+      setError(
+        "Не удалось скачать CSV. Проверьте, что браузер не блокирует загрузки, или попробуйте XLSX.",
+      );
+    }
   }
 
   async function handleXlsxDownload() {
