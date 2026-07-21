@@ -31,6 +31,25 @@
 - [ ] В репозитории, логах и fixtures нет секретов, персональных данных и реальных отчётов.
 - [ ] Загрузка проверяет владельца, размер, MIME-тип, расширение и структуру файла.
 - [ ] Данные одного пользователя нельзя получить по идентификатору другого.
+- [ ] Все server-side операции с `UploadedReport`, `ReportRow` и `ProductProfitSnapshot` проходят через auth и owner checks.
+- [ ] Отсутствующий и чужой отчёт дают одинаковый отказ, не раскрывая существование чужого идентификатора.
+- [ ] Login codes и session tokens хранятся только как hash; plaintext не пишется в БД или логи.
+- [ ] Истёкшие, consumed и revoked auth-записи не дают доступ.
+- [ ] Logout помечает серверную сессию `revokedAt` и очищает session cookie.
+- [ ] Текущий пользователь определяется на сервере по session cookie через hash lookup, а не по `userId` из клиента.
+- [ ] `/api/auth/me` возвращает текущего пользователя только по session cookie, не по `userId` с клиента.
+- [ ] Session cookie имеет `httpOnly`, `sameSite=lax`, `secure` в production и понятный срок жизни.
+- [ ] Без session cookie сервер не делает лишних запросов к auth repository.
+- [ ] Login code действует ограниченное время и гасится после успешной проверки.
+- [ ] Prisma auth repository не выбирает лишние поля пользователя и не пишет plaintext-коды/токены.
+- [ ] Server-side Prisma client переиспользуется в development и не создаёт лишние подключения при HMR.
+- [ ] Auth-flow отдаёт plaintext login code только email/OTP delivery provider и не возвращает его клиенту.
+- [ ] Auth endpoints не создают login code, если email/OTP delivery provider не настроен.
+- [ ] Email/OTP provider выбран по [`docs/auth-email-provider-options.md`](auth-email-provider-options.md), домен прошёл SPF/DKIM/DMARC.
+- [ ] Auth route payload валидируется до обращения к Prisma или email provider.
+- [ ] Невалидный, истёкший и уже использованный login code дают одинаковый публичный ответ.
+- [ ] Auth endpoints ограничивают частоту запроса и проверки login code до обращения к provider/Prisma и возвращают `429 rate_limited` с `retryAfterSeconds`.
+- [ ] Production rate-limit хранится в PostgreSQL `AuthRateLimitEvent`, без IP, user-agent и plaintext-кодов.
 - [ ] Срок хранения исходных файлов и удаление проверены.
 - [ ] Платёжный статус подтверждается на сервере; webhook защищён от повтора и подделки.
 

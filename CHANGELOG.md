@@ -25,6 +25,8 @@
 - Ручной ввод себестоимости единицы по SKU с точным пересчётом через integer-копейки и `BigInt`.
 - Расшифровка источников сумм и статусы «Убыток», «Пока в плюсе» и «Нужна себестоимость» в таблице анализа.
 - Диагноз по SKU с разрывом до безубыточности, предельной себестоимостью до рекламы, приоритетами и крупнейшей известной статьёй расходов.
+- Документ `docs/auth-owner-checks.md`, Prisma singleton, Prisma-модели `LoginCode`/`AuthSession`/`AuthRateLimitEvent`, Prisma auth repository, auth-token helpers, прикладной auth-flow, current-user cookie boundary, auth payload validation, auth HTTP response mapping с `429 rate_limited` и `503 delivery_unavailable`, auth API route handlers `/api/auth/request-code`, `/api/auth/verify-code`, `/api/auth/me`, `/api/auth/logout`, auth rate-limit policy, login-code flow, session resolver, session-cookie policy и server access-control guards для будущей истории отчётов.
+- Shortlist email/OTP-провайдеров для auth: UnisenderGo, Sendsay, SendPulse и DashaMail как запасной вариант.
 
 ### Изменено
 
@@ -48,4 +50,5 @@
 ### Безопасность
 
 - Зафиксированы правила работы с отчётами продавцов, секретами и трассировкой финансовых расчётов.
+- Принято решение D-008: серверная история отчётов запрещена до auth, owner checks и тестов на чужие данные.
 - `npm audit` проходит без известных уязвимостей; транзитивный PostCSS закреплён на исправленной версии.
