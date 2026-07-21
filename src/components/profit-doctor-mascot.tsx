@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { publicPath } from "@/lib/public-path";
 
 type ProfitDoctorMascotProps = {
   className?: string;
@@ -41,7 +42,7 @@ export function ProfitDoctorMascot({
     >
       <Image
         className="doctor-mascot-frame doctor-mascot-frame-rest"
-        src="/images/profit-doctor-mascot.png"
+        src={publicPath("/images/profit-doctor-mascot.png")}
         alt=""
         width={1254}
         height={1254}
@@ -49,7 +50,7 @@ export function ProfitDoctorMascot({
       />
       <Image
         className="doctor-mascot-frame doctor-mascot-frame-wave"
-        src="/images/profit-doctor-mascot-wave.png"
+        src={publicPath("/images/profit-doctor-mascot-wave.png")}
         alt=""
         width={1254}
         height={1254}

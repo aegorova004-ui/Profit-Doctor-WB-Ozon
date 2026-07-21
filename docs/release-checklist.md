@@ -11,6 +11,7 @@
 
 ## Проверки
 
+- [ ] Для бесплатного static-slice на GitHub Pages проверены `/`, `/upload`, демо-отчёт, ручная загрузка и экспорт.
 - [ ] `npm ci` проходит на чистом окружении.
 - [ ] `npm run db:generate` и `npm run db:validate` проходят.
 - [ ] `npm run format:check`, `npm run typecheck` и `npm run lint` проходят.

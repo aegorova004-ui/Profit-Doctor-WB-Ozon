@@ -32,6 +32,7 @@ import {
   ReportParseError,
   WB_API_PREVIEW_REQUIRED_HEADERS,
 } from "@/domain/reports/wildberries-api-preview";
+import { publicPath } from "@/lib/public-path";
 import { validateReportFile } from "@/domain/reports/validate-upload";
 import { ReportExportActions } from "./report-export-actions";
 
@@ -309,7 +310,7 @@ function UploadDiagnosticCard({
       <div className="upload-diagnostic-actions">
         <span>Сравните файл с шаблоном:</span>
         {diagnostic.templateLinks.map((link) => (
-          <a href={link.href} key={link.href} download>
+          <a href={publicPath(link.href)} key={link.href} download>
             {link.label}
           </a>
         ))}
@@ -1011,7 +1012,7 @@ export function ReportUpload() {
     setIsAnalyzing(true);
 
     try {
-      const response = await fetch(WB_XLSX_DEMO_REPORT.href, {
+      const response = await fetch(publicPath(WB_XLSX_DEMO_REPORT.href), {
         cache: "no-store",
       });
 
