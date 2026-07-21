@@ -173,6 +173,27 @@ describe("report export", () => {
     });
   });
 
+  it("keeps user-controlled XLSX source filename as a string cell", async () => {
+    const sheets = buildReportWorkbookSheets({
+      analysis: await createFixtureAnalysis(),
+      sourceFileName: "=unsafe-source.xlsx",
+      createdAtIso: "2026-07-13T20:00:00.000Z",
+    });
+    const summarySheet = sheets.find((sheet) => sheet.sheet === "Сводка");
+    const sourceFileRow = summarySheet?.data.find(
+      (row) =>
+        typeof row[0] === "object" &&
+        row[0] !== null &&
+        "value" in row[0] &&
+        row[0].value === "Исходный файл",
+    );
+
+    expect(sourceFileRow?.[1]).toMatchObject({
+      value: "=unsafe-source.xlsx",
+      type: String,
+    });
+  });
+
   it("creates a stable, filesystem-safe export name", () => {
     expect(createReportExportFileName("Отчёт WB / июль.xlsx", "xlsx")).toBe(
       "profit-doctor-Отчёт-WB-июль.xlsx",
