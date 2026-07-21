@@ -27,9 +27,36 @@ model User {
   telegramId         String?           @unique
   subscriptionPlanId String?
   subscriptionPlan   SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id], onDelete: SetNull)
+  authSessions       AuthSession[]
   reports            UploadedReport[]
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+}
+
+model LoginCode {
+  id         String    @id @default(cuid())
+  email      String    @db.Citext
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@index([expiresAt])
+}
+
+model AuthSession {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
 }
 
 model SubscriptionPlan {

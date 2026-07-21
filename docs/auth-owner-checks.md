@@ -33,6 +33,11 @@
 
 ## Реализованный фундамент
 
+Prisma schema содержит:
+
+- `LoginCode` — одноразовый код входа по email; хранит `email`, `codeHash`, `expiresAt`, `consumedAt`, но не хранит код в открытом виде;
+- `AuthSession` — серверная сессия пользователя; хранит `tokenHash`, `expiresAt`, `revokedAt`, `lastUsedAt`, но не хранит cookie-token в открытом виде.
+
 `src/server/access-control.ts` содержит:
 
 - `normalizeEmail`;
@@ -40,6 +45,14 @@
 - `assertOwnsResource` и `assertOwnsReport`;
 - `scopedByCurrentUser`;
 - `requireOwnedResource`.
+
+`src/server/auth-tokens.ts` содержит:
+
+- генерацию login code;
+- генерацию session token;
+- SHA-256 hash секрета;
+- constant-time проверку секрета;
+- helpers для срока действия.
 
 `src/server/access-control.test.ts` покрывает:
 
@@ -49,6 +62,14 @@
 - отказ к чужому или отсутствующему отчёту;
 - защиту от caller-provided `userId`;
 - загрузку ресурса только через scope текущего пользователя.
+
+`src/server/auth-tokens.test.ts` покрывает:
+
+- hash/verify без хранения plaintext;
+- отказ на malformed hash;
+- длину и формат session token;
+- длину login code;
+- расчёт expiry.
 
 ## Что ещё нужно перед серверной историей
 
