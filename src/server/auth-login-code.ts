@@ -1,6 +1,11 @@
 import type { AuthenticatedUser } from "./access-control";
 import { normalizeEmail } from "./access-control";
-import { generateLoginCode, hashSecret, isExpired } from "./auth-tokens";
+import {
+  generateLoginCode,
+  hashSecret,
+  isExpired,
+  verifySecret,
+} from "./auth-tokens";
 
 const DEFAULT_LOGIN_CODE_TTL_MINUTES = 10;
 
@@ -73,7 +78,7 @@ export async function consumeLoginCode(
     !loginCode ||
     loginCode.consumedAt ||
     loginCode.email !== email ||
-    loginCode.codeHash !== hashSecret(code) ||
+    !verifySecret(code, loginCode.codeHash) ||
     isExpired(loginCode.expiresAt, now)
   ) {
     return null;
