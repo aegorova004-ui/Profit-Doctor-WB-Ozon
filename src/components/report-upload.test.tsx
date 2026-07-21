@@ -430,6 +430,13 @@ describe("ReportUpload", () => {
     expect(
       screen
         .getByRole("link", {
+          name: "CSV — неизвестный формат для проверки ошибки",
+        })
+        .getAttribute("href"),
+    ).toBe("/demo/unsupported-finance-format.csv");
+    expect(
+      screen
+        .getByRole("link", {
           name: "Ozon CSV — рабочий preview finance",
         })
         .getAttribute("href"),

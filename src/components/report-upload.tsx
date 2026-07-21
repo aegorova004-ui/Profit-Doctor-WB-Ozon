@@ -1374,6 +1374,11 @@ export function ReportUpload() {
             </a>
           </li>
           <li>
+            <a href="/demo/unsupported-finance-format.csv" download>
+              CSV — неизвестный формат для проверки ошибки
+            </a>
+          </li>
+          <li>
             <a href="/demo/ozon-finance-preview.csv" download>
               Ozon CSV — рабочий preview finance
             </a>
