@@ -68,6 +68,15 @@ Prisma schema содержит:
 - `secure=true` для production;
 - max age 30 дней и helper для очистки cookie.
 
+`src/server/auth-login-code.ts` содержит:
+
+- выпуск одноразового login code с нормализацией email;
+- хранение только `codeHash`, без plaintext-кода;
+- срок действия 10 минут;
+- проверку последнего кода по email;
+- отказ для пустого, неверного, истёкшего или уже использованного кода;
+- погашение кода до выдачи пользователя через repository boundary.
+
 `src/server/access-control.test.ts` покрывает:
 
 - нормализацию email;
@@ -98,9 +107,17 @@ Prisma schema содержит:
 - local/production cookie policy;
 - очистку session cookie без ослабления настроек.
 
+`src/server/auth-login-code.test.ts` покрывает:
+
+- выпуск кода без хранения plaintext;
+- нормализацию email;
+- успешное погашение валидного кода;
+- отказ для пустого, неизвестного, неверного, истёкшего и уже использованного кода.
+
 ## Что ещё нужно перед серверной историей
 
 - Выбрать конкретного провайдера email magic link/OTP.
+- Подключить repository к Prisma для `LoginCode`, `User` и `AuthSession`.
 - Подключить `resolveCurrentUserFromSessionToken` к Next route handlers через `profit_doctor_session`.
 - Подключить guards к будущим data access functions.
 - Добавить integration-тесты на реальные Prisma-запросы, когда появятся server routes для истории.
