@@ -124,6 +124,55 @@ describe("report export", () => {
     expect(csv).toContain("'@offer");
   });
 
+  it("keeps user-controlled XLSX text as string cells, not formulas", () => {
+    const report: ParsedReport = {
+      marketplace: "wildberries",
+      formatVersion: "test",
+      sourceRowCount: 1,
+      warnings: [],
+      missingColumns: [],
+      rows: [
+        {
+          sourceRowNumber: 2,
+          sku: "+SUM(A1:A2)",
+          offerId: "@offer",
+          productName: '=HYPERLINK("https://example.com")',
+          quantity: 1,
+          revenueKopecks: 10_000,
+          marketplaceCommissionKopecks: 1_000,
+          logisticsKopecks: 0,
+          storageKopecks: 0,
+          returnsKopecks: 0,
+          penaltiesKopecks: 0,
+          advertisingKopecks: 0,
+          costOfGoodsKopecks: 5_000,
+          otherExpensesKopecks: 0,
+        },
+      ],
+    };
+
+    const sheets = buildReportWorkbookSheets({
+      analysis: analyzeParsedReport(report),
+      sourceFileName: "=unsafe.xlsx",
+      createdAtIso: "2026-07-13T20:00:00.000Z",
+    });
+    const skuSheet = sheets.find((sheet) => sheet.sheet === "SKU");
+    const row = skuSheet?.data[1];
+
+    expect(row?.[2]).toMatchObject({
+      value: '=HYPERLINK("https://example.com")',
+      type: String,
+    });
+    expect(row?.[3]).toMatchObject({
+      value: "+SUM(A1:A2)",
+      type: String,
+    });
+    expect(row?.[4]).toMatchObject({
+      value: "@offer",
+      type: String,
+    });
+  });
+
   it("creates a stable, filesystem-safe export name", () => {
     expect(createReportExportFileName("Отчёт WB / июль.xlsx", "xlsx")).toBe(
       "profit-doctor-Отчёт-WB-июль.xlsx",
